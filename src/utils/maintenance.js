@@ -1,0 +1,15 @@
+const MAINTENANCE_STATUS_CODE = {
+    RECEIVING: "RECEIVING", // Nhận xe
+    INSPECTING: "INSPECTING", // Kiểm tra
+    UNDER_MAINTENANCE: "UNDER_MAINTENANCE", // Bảo dưỡng
+    COMPLETED: "COMPLETED", // Hoàn thành bảo dưỡng
+    CANCELED: "CANCELED" // Đã hủy bảo dưỡng
+};
+
+const MAINTENANCE_STATUS_KEYS = Object.keys(MAINTENANCE_STATUS_CODE);
+
+export default {
+    MAINTENANCE_STATUS_CODE,
+
+    MAINTENANCE_STATUS_KEYS
+}
