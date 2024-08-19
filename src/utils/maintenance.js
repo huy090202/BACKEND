@@ -8,7 +8,7 @@ const MAINTENANCE_STATUS_CODE = {
 
 const MAINTENANCE_STATUS_KEYS = Object.keys(MAINTENANCE_STATUS_CODE);
 
-export default {
+module.exports = {
     MAINTENANCE_STATUS_CODE,
 
     MAINTENANCE_STATUS_KEYS

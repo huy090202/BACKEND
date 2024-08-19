@@ -7,6 +7,7 @@ module.exports = {
                 type: Sequelize.UUID,
                 primaryKey: true,
                 allowNull: false,
+                defaultValue: DataTypes.UUIDV4,
             },
             avatar: {
                 type: Sequelize.STRING,

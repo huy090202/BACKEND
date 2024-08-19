@@ -10,7 +10,7 @@ const PAYMENT_STATUS_CODE = {
     UNPAID: "UNPAID" // Chưa thanh toán
 }
 
-export default {
+module.exports = {
     PAYMENT_METHOD_CODE,
     PAYMENT_STATUS_CODE,
 

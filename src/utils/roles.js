@@ -4,4 +4,6 @@ const ROLE_CODE = {
     ADMIN: "ADMIN",
 }
 
-export default ROLE_CODE;
+module.exports = {
+    ROLE_CODE
+};

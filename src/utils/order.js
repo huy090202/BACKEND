@@ -16,7 +16,7 @@ const DELIVERY_METHOD_CODE = {
     CARRYOUT: "CARRYOUT" // Mang về
 }
 
-export default {
+module.exports = {
     ORDER_STATUS_CODE,
     DELIVERY_METHOD_CODE,
 
