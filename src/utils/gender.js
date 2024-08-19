@@ -4,4 +4,6 @@ const GENDER_CODE = {
     OTHER: "OTHER", // Khác
 }
 
-export default GENDER_CODE;
+module.exports = {
+    GENDER_CODE
+};

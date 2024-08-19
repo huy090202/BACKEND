@@ -30,6 +30,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.UUID,
             primaryKey: true,
             allowNull: false,
+            defaultValue: DataTypes.UUIDV4,
         },
         avatar: {
             type: DataTypes.STRING,
@@ -38,49 +39,20 @@ module.exports = (sequelize, DataTypes) => {
         firstName: {
             type: DataTypes.STRING,
             allowNull: false,
-            // Delete space before and after string
-            set(value) {
-                this.setDataValue('firstname', value.trim());
-            },
-            // Get value without space before and after string
-            get() {
-                const rawValue = this.getDataValue('firstname');
-                return rawValue ? rawValue.trim() : null;
-            }
         },
         lastName: {
             type: DataTypes.STRING,
             allowNull: false,
-            set(value) {
-                this.setDataValue('lastname', value.trim());
-            },
-            get() {
-                const rawValue = this.getDataValue('lastname');
-                return rawValue ? rawValue.trim() : null;
-            }
         },
         email: {
             type: DataTypes.STRING,
             allowNull: false,
             unique: true,
-            validate: {
-                isEmail: true
-            },
-            set(value) {
-                this.setDataValue('email', value.trim());
-            },
-            get() {
-                const rawValue = this.getDataValue('email');
-                return rawValue ? rawValue.trim() : null;
-            }
         },
         phoneNumber: {
             type: DataTypes.STRING,
             allowNull: false,
             unique: true,
-            validate: {
-                isNumeric: true
-            },
         },
         password: {
             type: DataTypes.STRING,
@@ -94,7 +66,7 @@ module.exports = (sequelize, DataTypes) => {
         address: {
             type: DataTypes.STRING,
         },
-        avtive: {
+        active: {
             type: DataTypes.BOOLEAN,
             defaultValue: true,
         },
