@@ -314,6 +314,26 @@ const getAllStaffsHandler = async (req, res) => {
     });
 };
 
+// Get All Techs
+const getAllTechsHandler = async (req, res) => {
+    const techs = await userServices.findUsers({ role: ROLE_CODE.TECH });
+    return res.status(200).json({
+        status: true,
+        message: "All Techs",
+        data: techs
+    });
+};
+
+// Get All Cashiers
+const getAllCashiersHandler = async (req, res) => {
+    const cashiers = await userServices.findUsers({ role: ROLE_CODE.CASHIER });
+    return res.status(200).json({
+        status: true,
+        message: "All Cashiers",
+        data: cashiers
+    });
+};
+
 // Get All Admins
 const getAllAdminsHandler = async (req, res) => {
     const admins = await userServices.findUsers({ role: ROLE_CODE.ADMIN });
@@ -333,7 +353,10 @@ module.exports = {
 
     createStaffHandler,
     updateUserStatusHandler,
+
     getAllUsersHandler,
     getAllStaffsHandler,
+    getAllTechsHandler,
+    getAllCashiersHandler,
     getAllAdminsHandler
 };
