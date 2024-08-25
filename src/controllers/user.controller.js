@@ -269,6 +269,8 @@ const createStaffHandler = async (req, res) => {
 
     let controllerRole = 'STAFF';
     if (role === 'STAFF') controllerRole = 'STAFF';
+    if (role === 'TECH') controllerRole = 'TECH';
+    if (role === 'CASHIER') controllerRole = 'CASHIER';
     if (role === 'ADMIN') controllerRole = 'ADMIN';
 
     const newStaff = await userServices.createStaff({ firstName, lastName, email, phoneNumber, password, role: controllerRole });
