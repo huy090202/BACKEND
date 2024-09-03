@@ -37,7 +37,7 @@ const verifyToken = (token) => {
             jwt.verify(token, process.env.REFRESH_TOKEN, async (err, user) => {
                 if (err) {
                     resolve({
-                        status: "ERR",
+                        status: false,
                         message: "The authemtication",
                     });
                 }
@@ -48,8 +48,8 @@ const verifyToken = (token) => {
                 });
 
                 resolve({
-                    status: "OK",
-                    message: "SUCESS",
+                    status: true,
+                    message: "Update token success",
                     access_token,
                 });
             });

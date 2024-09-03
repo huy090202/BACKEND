@@ -11,6 +11,7 @@ router.post("/login", userController.loginUserHandler);
 router.put("/update", deserializeUser, userController.updateUserHandler);
 router.patch("/change-password", deserializeUser, userController.changePasswordHandler);
 router.get("/profile", deserializeUser, userController.getUserProfileHandler);
+router.post("/refresh-token", deserializeUser, userController.refreshTokenHandler);
 
 router.post("/create-staff", [deserializeUser, restrictTo(["ADMIN"])], userController.createStaffHandler);
 router.patch("/update-status/:id", [deserializeUser, restrictTo(["ADMIN"])], userController.updateUserStatusHandler);
