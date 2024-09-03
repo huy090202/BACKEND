@@ -1,5 +1,5 @@
 const userServices = require('../services/user.service');
-const { generateAccessToken, generateRefreshToken } = require('../services/jwt.service');
+const { generateAccessToken, generateRefreshToken, verifyToken } = require('../services/jwt.service');
 const { PASSWORD_VALIDATION, EMAIL_VALIDATION, PHONE_NUMBER_VALIDATION } = require('../utils/validations');
 const { ROLE_CODE } = require('../utils/roles');
 
@@ -117,7 +117,8 @@ const loginUserHandler = async (req, res) => {
     // Set refresh token in cookie
     res.cookie('refresh_token', refresh_token, {
         httpOnly: true,
-        secure: true,
+        secure: process.env.NODE_ENV === 'production' || false,
+        sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000 // Cookie expires in 7 days
     })
 
@@ -344,12 +345,33 @@ const getAllAdminsHandler = async (req, res) => {
     });
 };
 
+// Refresh Token
+const refreshTokenHandler = async (req, res) => {
+    const { refresh_token } = req.body;
+
+    if (!refresh_token) {
+        return res.status(401).json({
+            status: false,
+            message: "No refresh token provided",
+            data: {}
+        });
+    }
+
+    const response = await verifyToken(refresh_token);
+    return res.status(200).json({
+        status: response.status,
+        message: response.message,
+        data: response.access_token
+    })
+}
+
 module.exports = {
     createUserHandler,
     loginUserHandler,
     updateUserHandler,
     changePasswordHandler,
     getUserProfileHandler,
+    refreshTokenHandler,
 
     createStaffHandler,
     updateUserStatusHandler,
