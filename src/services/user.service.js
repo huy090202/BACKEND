@@ -134,9 +134,10 @@ const createStaff = async ({ firstName, lastName, email, phoneNumber, password, 
 }
 
 // Find Users
-const findUsers = async (query) => {
+const findUsers = async ({ query, active, offset, limit }) => {
     try {
-        const users = await db.User.findAll({ where: query });
+        const { rows: users } = await db.User.findAndCountAll({ where: { ...query, ...active }, offset, limit });
+
         return users.map(user => {
             return omit(user.toJSON(), ["password", "createdAt", "updatedAt"]);
         });

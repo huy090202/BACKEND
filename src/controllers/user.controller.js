@@ -297,51 +297,111 @@ const updateUserStatusHandler = async (req, res) => {
 
 // Get All Users
 const getAllUsersHandler = async (req, res) => {
-    const users = await userServices.findUsers({ role: ROLE_CODE.USER });
+    const { active, page = 1, limit = 5 } = req.query;
+    const offset = (page - 1) * parseInt(limit);
+
+    let users = [];
+    if (active === 'true' || active === true)
+        users = await userServices.findUsers({ role: ROLE_CODE.USER, active: { active: true }, offset, limit: parseInt(limit) });
+    else if (active === 'false' || active === false)
+        users = await userServices.findUsers({ role: ROLE_CODE.USER, active: { active: false }, offset, limit: parseInt(limit) });
+    else users = await userServices.findUsers({ role: ROLE_CODE.USER, active: {}, offset, limit: parseInt(limit) });
+
     return res.status(200).json({
         status: true,
         message: "All users",
-        data: users
+        data: users,
+        total: users.length,
+        page: parseInt(page),
+        limit: parseInt(limit)
     });
 };
 
 // Get All Staffs
 const getAllStaffsHandler = async (req, res) => {
-    const staffs = await userServices.findUsers({ role: ROLE_CODE.STAFF });
+    const { active, page = 1, limit = 5 } = req.query;
+    const offset = (page - 1) * parseInt(limit);
+
+    let staffs = [];
+    if (active === 'true' || active === true)
+        staffs = await userServices.findUsers({ role: ROLE_CODE.STAFF, active: { active: true }, offset, limit: parseInt(limit) });
+    else if (active === 'false' || active === false)
+        staffs = await userServices.findUsers({ role: ROLE_CODE.STAFF, active: { active: false }, offset, limit: parseInt(limit) });
+    else staffs = await userServices.findUsers({ role: ROLE_CODE.STAFF, active: {}, offset, limit: parseInt(limit) });
+
     return res.status(200).json({
         status: true,
         message: "All staffs",
-        data: staffs
+        data: staffs,
+        total: staffs.length,
+        page: parseInt(page),
+        limit: parseInt(limit)
     });
 };
 
 // Get All Techs
 const getAllTechsHandler = async (req, res) => {
-    const techs = await userServices.findUsers({ role: ROLE_CODE.TECH });
+    const { active, page = 1, limit = 5 } = req.query;
+    const offset = (page - 1) * parseInt(limit);
+
+    let techs = [];
+    if (active === 'true' || active === true)
+        techs = await userServices.findUsers({ role: ROLE_CODE.TECH, active: { active: true }, offset, limit: parseInt(limit) });
+    else if (active === 'false' || active === false)
+        techs = await userServices.findUsers({ role: ROLE_CODE.TECH, active: { active: false }, offset, limit: parseInt(limit) });
+    else techs = await userServices.findUsers({ role: ROLE_CODE.TECH, active: {}, offset, limit: parseInt(limit) });
+
     return res.status(200).json({
         status: true,
         message: "All Techs",
-        data: techs
+        data: techs,
+        total: techs.length,
+        page: parseInt(page),
+        limit: parseInt(limit)
     });
 };
 
 // Get All Cashiers
 const getAllCashiersHandler = async (req, res) => {
-    const cashiers = await userServices.findUsers({ role: ROLE_CODE.CASHIER });
+    const { active, page = 1, limit = 5 } = req.query;
+    const offset = (page - 1) * parseInt(limit);
+
+    let cashiers = [];
+    if (active === 'true' || active === true)
+        cashiers = await userServices.findUsers({ role: ROLE_CODE.CASHIER, active: { active: true }, offset, limit: parseInt(limit) });
+    else if (active === 'false' || active === false)
+        cashiers = await userServices.findUsers({ role: ROLE_CODE.CASHIER, active: { active: false }, offset, limit: parseInt(limit) });
+    else cashiers = await userServices.findUsers({ role: ROLE_CODE.CASHIER, active: {}, offset, limit: parseInt(limit) });
+
     return res.status(200).json({
         status: true,
         message: "All Cashiers",
-        data: cashiers
+        data: cashiers,
+        total: cashiers.length,
+        page: parseInt(page),
+        limit: parseInt(limit)
     });
 };
 
 // Get All Admins
 const getAllAdminsHandler = async (req, res) => {
-    const admins = await userServices.findUsers({ role: ROLE_CODE.ADMIN });
+    const { active, page = 1, limit = 5 } = req.query;
+    const offset = (page - 1) * parseInt(limit);
+
+    let admins = [];
+    if (active === 'true' || active === true)
+        admins = await userServices.findUsers({ role: ROLE_CODE.ADMIN, active: { active: true }, offset, limit: parseInt(limit) });
+    else if (active === 'false' || active === false)
+        admins = await userServices.findUsers({ role: ROLE_CODE.ADMIN, active: { active: false }, offset, limit: parseInt(limit) });
+    else admins = await userServices.findUsers({ role: ROLE_CODE.ADMIN, active: {}, offset, limit: parseInt(limit) });
+
     return res.status(200).json({
         status: true,
         message: "All admins",
-        data: admins
+        data: admins,
+        total: admins.length,
+        page: parseInt(page),
+        limit: parseInt(limit)
     });
 };
 
