@@ -144,9 +144,14 @@ const updateUserHandler = async (req, res) => {
         });
     }
 
-    const { avatar, firstName, lastName, phoneNumber, gender, address } = req.body;
+    let avatar_fileName;
+    if (req.file) {
+        avatar_fileName = `${req.file.filename}`;
+    }
+
+    const { firstName, lastName, phoneNumber, gender, address } = req.body;
     const user = await userServices.updateUser(id, {
-        avatar,
+        ...(avatar_fileName && { avatar: avatar_fileName }),
         firstName,
         lastName,
         phoneNumber,
