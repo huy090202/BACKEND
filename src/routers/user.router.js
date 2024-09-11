@@ -4,11 +4,12 @@ const router = Router();
 const userController = require('../controllers/user.controller');
 const deserializeUser = require('../middleware/deserializeUser');
 const restrictTo = require('../middleware/restrictTo');
+const upload = require('../middleware/uploadAvatar');
 
 router.post("/create", userController.createUserHandler);
 router.post("/login", userController.loginUserHandler);
 
-router.put("/update", deserializeUser, userController.updateUserHandler);
+router.put("/update", deserializeUser, upload.single("avatar"), userController.updateUserHandler);
 router.patch("/change-password", deserializeUser, userController.changePasswordHandler);
 router.get("/profile", deserializeUser, userController.getUserProfileHandler);
 router.post("/refresh-token", deserializeUser, userController.refreshTokenHandler);

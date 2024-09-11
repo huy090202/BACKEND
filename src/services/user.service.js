@@ -29,7 +29,7 @@ const updateUser = async (id, dataUpdate) => {
         const user = await db.User.findOne({ where: { id } });
         if (!user) return null;
 
-        await user.update(dataUpdate, { new: true });
+        await user.update(dataUpdate);
         return omit(user?.toJSON(), ["password", "createdAt", "updatedAt"]);
     } catch (error) {
         console.error('Error updating user:', error);

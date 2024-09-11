@@ -31,6 +31,7 @@ app.use(cookieParser());
 
 // Setup routes
 routes(app);
+app.use("/images", express.static("src/uploads"));
 
 // Connect to database and start server
 connecttion();
