@@ -307,10 +307,10 @@ const getAllUsersHandler = async (req, res) => {
 
     let users = [];
     if (active === 'true' || active === true)
-        users = await userServices.findUsers({ role: ROLE_CODE.USER, active: { active: true }, offset, limit: parseInt(limit) });
+        users = await userServices.findUsers({ query: { role: ROLE_CODE.USER }, active: { active: true }, offset, limit: parseInt(limit) });
     else if (active === 'false' || active === false)
-        users = await userServices.findUsers({ role: ROLE_CODE.USER, active: { active: false }, offset, limit: parseInt(limit) });
-    else users = await userServices.findUsers({ role: ROLE_CODE.USER, active: {}, offset, limit: parseInt(limit) });
+        users = await userServices.findUsers({ query: { role: ROLE_CODE.USER }, active: { active: false }, offset, limit: parseInt(limit) });
+    else users = await userServices.findUsers({ query: { role: ROLE_CODE.USER }, active: {}, offset, limit: parseInt(limit) });
 
     return res.status(200).json({
         status: true,
@@ -329,10 +329,10 @@ const getAllStaffsHandler = async (req, res) => {
 
     let staffs = [];
     if (active === 'true' || active === true)
-        staffs = await userServices.findUsers({ role: ROLE_CODE.STAFF, active: { active: true }, offset, limit: parseInt(limit) });
+        staffs = await userServices.findUsers({ query: { role: ROLE_CODE.STAFF }, active: { active: true }, offset, limit: parseInt(limit) });
     else if (active === 'false' || active === false)
-        staffs = await userServices.findUsers({ role: ROLE_CODE.STAFF, active: { active: false }, offset, limit: parseInt(limit) });
-    else staffs = await userServices.findUsers({ role: ROLE_CODE.STAFF, active: {}, offset, limit: parseInt(limit) });
+        staffs = await userServices.findUsers({ query: { role: ROLE_CODE.STAFF }, active: { active: false }, offset, limit: parseInt(limit) });
+    else staffs = await userServices.findUsers({ query: { role: ROLE_CODE.STAFF }, active: {}, offset, limit: parseInt(limit) });
 
     return res.status(200).json({
         status: true,
@@ -351,10 +351,10 @@ const getAllTechsHandler = async (req, res) => {
 
     let techs = [];
     if (active === 'true' || active === true)
-        techs = await userServices.findUsers({ role: ROLE_CODE.TECH, active: { active: true }, offset, limit: parseInt(limit) });
+        techs = await userServices.findUsers({ query: { role: ROLE_CODE.TECH }, active: { active: true }, offset, limit: parseInt(limit) });
     else if (active === 'false' || active === false)
-        techs = await userServices.findUsers({ role: ROLE_CODE.TECH, active: { active: false }, offset, limit: parseInt(limit) });
-    else techs = await userServices.findUsers({ role: ROLE_CODE.TECH, active: {}, offset, limit: parseInt(limit) });
+        techs = await userServices.findUsers({ query: { role: ROLE_CODE.TECH }, active: { active: false }, offset, limit: parseInt(limit) });
+    else techs = await userServices.findUsers({ query: { role: ROLE_CODE.TECH }, active: {}, offset, limit: parseInt(limit) });
 
     return res.status(200).json({
         status: true,
@@ -373,10 +373,10 @@ const getAllCashiersHandler = async (req, res) => {
 
     let cashiers = [];
     if (active === 'true' || active === true)
-        cashiers = await userServices.findUsers({ role: ROLE_CODE.CASHIER, active: { active: true }, offset, limit: parseInt(limit) });
+        cashiers = await userServices.findUsers({ query: { role: ROLE_CODE.CASHIER }, active: { active: true }, offset, limit: parseInt(limit) });
     else if (active === 'false' || active === false)
-        cashiers = await userServices.findUsers({ role: ROLE_CODE.CASHIER, active: { active: false }, offset, limit: parseInt(limit) });
-    else cashiers = await userServices.findUsers({ role: ROLE_CODE.CASHIER, active: {}, offset, limit: parseInt(limit) });
+        cashiers = await userServices.findUsers({ query: { role: ROLE_CODE.CASHIER }, active: { active: false }, offset, limit: parseInt(limit) });
+    else cashiers = await userServices.findUsers({ query: { role: ROLE_CODE.CASHIER }, active: {}, offset, limit: parseInt(limit) });
 
     return res.status(200).json({
         status: true,
@@ -395,10 +395,10 @@ const getAllAdminsHandler = async (req, res) => {
 
     let admins = [];
     if (active === 'true' || active === true)
-        admins = await userServices.findUsers({ role: ROLE_CODE.ADMIN, active: { active: true }, offset, limit: parseInt(limit) });
+        admins = await userServices.findUsers({ query: { role: ROLE_CODE.ADMIN }, active: { active: true }, offset, limit: parseInt(limit) });
     else if (active === 'false' || active === false)
-        admins = await userServices.findUsers({ role: ROLE_CODE.ADMIN, active: { active: false }, offset, limit: parseInt(limit) });
-    else admins = await userServices.findUsers({ role: ROLE_CODE.ADMIN, active: {}, offset, limit: parseInt(limit) });
+        admins = await userServices.findUsers({ query: { role: ROLE_CODE.ADMIN }, active: { active: false }, offset, limit: parseInt(limit) });
+    else admins = await userServices.findUsers({ query: { role: ROLE_CODE.ADMIN }, active: {}, offset, limit: parseInt(limit) });
 
     return res.status(200).json({
         status: true,
