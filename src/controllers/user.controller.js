@@ -315,8 +315,8 @@ const getAllUsersHandler = async (req, res) => {
     return res.status(200).json({
         status: true,
         message: "All users",
-        data: users,
-        total: users.length,
+        data: users.users,
+        total: users.total,
         page: parseInt(page),
         limit: parseInt(limit)
     });
@@ -337,8 +337,8 @@ const getAllStaffsHandler = async (req, res) => {
     return res.status(200).json({
         status: true,
         message: "All staffs",
-        data: staffs,
-        total: staffs.length,
+        data: staffs.users,
+        total: staffs.total,
         page: parseInt(page),
         limit: parseInt(limit)
     });
@@ -359,8 +359,8 @@ const getAllTechsHandler = async (req, res) => {
     return res.status(200).json({
         status: true,
         message: "All Techs",
-        data: techs,
-        total: techs.length,
+        data: techs.users,
+        total: techs.total,
         page: parseInt(page),
         limit: parseInt(limit)
     });
@@ -381,8 +381,8 @@ const getAllCashiersHandler = async (req, res) => {
     return res.status(200).json({
         status: true,
         message: "All Cashiers",
-        data: cashiers,
-        total: cashiers.length,
+        data: cashiers.users,
+        total: cashiers.total,
         page: parseInt(page),
         limit: parseInt(limit)
     });
@@ -403,8 +403,8 @@ const getAllAdminsHandler = async (req, res) => {
     return res.status(200).json({
         status: true,
         message: "All admins",
-        data: admins,
-        total: admins.length,
+        data: admins.users,
+        total: admins.total,
         page: parseInt(page),
         limit: parseInt(limit)
     });

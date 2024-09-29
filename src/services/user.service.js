@@ -136,11 +136,13 @@ const createStaff = async ({ firstName, lastName, email, phoneNumber, password, 
 // Find Users
 const findUsers = async ({ query, active, offset, limit }) => {
     try {
-        const { rows: users } = await db.User.findAndCountAll({ where: { ...query, ...active }, offset, limit });
+        const { rows: users, count } = await db.User.findAndCountAll({ where: { ...query, ...active }, offset, limit });
 
-        return users.map(user => {
+        const formattedUsers = users.map(user => {
             return omit(user.toJSON(), ["password", "createdAt", "updatedAt"]);
-        });
+        })
+
+        return { users: formattedUsers, total: count };
     } catch (error) {
         console.error('Error finding users:', error);
         throw new Error('Failed to find users');
