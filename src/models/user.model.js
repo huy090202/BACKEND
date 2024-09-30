@@ -22,6 +22,12 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'user_id',
                 as: 'maintenances',
             });
+
+            // A user can have many appointments
+            User.hasMany(models.Appointment, {
+                foreignKey: 'user_id',
+                as: 'appointments',
+            });
         }
     };
 

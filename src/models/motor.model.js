@@ -16,6 +16,12 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'motor_id',
                 as: 'motorImages',
             });
+
+            // A motor can have many appointments
+            Motor.hasMany(models.Appointment, {
+                foreignKey: 'motor_id',
+                as: 'appointments',
+            });
         }
     };
 
