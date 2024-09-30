@@ -2,6 +2,7 @@ const userServices = require('../services/user.service');
 const { generateAccessToken, generateRefreshToken, verifyToken } = require('../services/jwt.service');
 const { PASSWORD_VALIDATION, EMAIL_VALIDATION, PHONE_NUMBER_VALIDATION } = require('../utils/validations');
 const { ROLE_CODE } = require('../utils/roles');
+const { uploadToMinio } = require('../middleware/uploadImages');
 
 // User Registration
 const createUserHandler = async (req, res) => {
@@ -144,14 +145,22 @@ const updateUserHandler = async (req, res) => {
         });
     }
 
-    let avatar_fileName;
+    let avatarUrl;
     if (req.file) {
-        avatar_fileName = `${req.file.filename}`;
+        try {
+            avatarUrl = await uploadToMinio(req.file);
+        } catch (err) {
+            return res.status(500).json({
+                status: false,
+                message: "Error uploading avatar",
+                data: {}
+            });
+        }
     }
 
     const { firstName, lastName, phoneNumber, gender, address } = req.body;
     const user = await userServices.updateUser(id, {
-        ...(avatar_fileName && { avatar: avatar_fileName }),
+        ...(avatarUrl && { avatar: avatarUrl }),
         firstName,
         lastName,
         phoneNumber,
