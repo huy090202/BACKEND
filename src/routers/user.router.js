@@ -4,7 +4,7 @@ const router = Router();
 const userController = require('../controllers/user.controller');
 const deserializeUser = require('../middleware/deserializeUser');
 const restrictTo = require('../middleware/restrictTo');
-const upload = require('../middleware/uploadAvatar');
+const { upload } = require('../middleware/uploadImages');
 
 router.post("/create", userController.createUserHandler);
 router.post("/login", userController.loginUserHandler);
