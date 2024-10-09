@@ -13,9 +13,9 @@ const minioClient = new Minio.Client({
 
 minioClient.makeBucket(process.env.MINIO_BUCKET_NAME, 'us-east-1', function (err) {
     if (err && err.code !== 'BucketAlreadyOwnedByYou') {
-        return console.log('Bucket creation failed', err);
+        return console.log('Tạo Bucket thất bại: ', err);
     }
-    console.log('Bucket is ready to use');
+    console.log('Bucket đã được tạo hoặc đã tồn tại');
 });
 
 module.exports = minioClient;

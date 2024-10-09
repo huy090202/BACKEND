@@ -8,13 +8,13 @@ const { PAYMENT_STATUS_CODE, PAYMENT_METHOD_CODE, PAYMENT_METHOD_KEYS } = requir
 module.exports = (sequelize, DataTypes) => {
     class Order extends Model {
         static associate(models) {
-            // An order belongs to a user
+            // 1 đơn hàng thuộc về 1 người dùng
             Order.belongsTo(models.User, {
                 foreignKey: 'user_id',
                 as: 'user',
             });
 
-            // An order has many order details
+            // 1 đơn hàng có nhiều chi tiết đơn hàng
             Order.hasMany(models.OrderDetail, {
                 foreignKey: 'order_id',
                 as: 'orderDetails',
@@ -27,6 +27,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.UUID,
             primaryKey: true,
             allowNull: false,
+            defaultValue: DataTypes.UUIDV4,
         },
         order_code: {
             type: DataTypes.STRING(6),

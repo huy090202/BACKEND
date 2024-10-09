@@ -3,13 +3,13 @@ const motorService = require('../services/motor.service');
 const { uploadToMinio } = require('../middleware/uploadImages');
 const minioClient = require('../configs/minio');
 
-// Create Motor Image
+// Tạo một ảnh xe mới
 const createMotorImageHandler = async (req, res) => {
     const { description, motor_id } = req.body;
     if (!motor_id) {
         return res.status(400).json({
             status: false,
-            message: "Required fields must not be empty",
+            message: "Id xe không được để trống",
             data: {}
         })
     }
@@ -18,7 +18,7 @@ const createMotorImageHandler = async (req, res) => {
     if (!existedMotor) {
         return res.status(404).json({
             status: false,
-            message: `Motor '${motor_id}' does not existed`,
+            message: `Xe '${motor_id}' không tồn tại`,
         })
     }
 
@@ -29,7 +29,7 @@ const createMotorImageHandler = async (req, res) => {
         } catch (err) {
             return res.status(500).json({
                 status: false,
-                message: "Error uploading image",
+                message: "Lỗi khi tải ảnh lên",
                 data: {}
             });
         }
@@ -44,25 +44,25 @@ const createMotorImageHandler = async (req, res) => {
     if (!motorImage) {
         return res.status(500).json({
             status: false,
-            message: "Error creating motor image",
+            message: "Lỗi khi tạo ảnh xe",
             data: {}
         });
     }
 
     return res.status(201).json({
         status: true,
-        message: "Motor image created successfully",
+        message: "Ảnh xe đã được tạo thành công",
         data: motorImage
     });
 };
 
-// Update Motor Image By Id
+// Cập nhật ảnh xe theo id
 const updateMotorImageByIdHandler = async (req, res) => {
     const { id } = req.params;
     if (!id) {
         return res.status(400).json({
             status: false,
-            message: "Id is required",
+            message: "Id ảnh xe không được để trống",
             data: {}
         })
     }
@@ -74,7 +74,7 @@ const updateMotorImageByIdHandler = async (req, res) => {
         } catch (err) {
             return res.status(500).json({
                 status: false,
-                message: "Error uploading image",
+                message: "Lỗi khi tải ảnh lên",
                 data: {}
             });
         }
@@ -90,26 +90,26 @@ const updateMotorImageByIdHandler = async (req, res) => {
     if (!motorImage) {
         return res.status(500).json({
             status: false,
-            message: "Error updating motor image",
+            message: "Lỗi khi cập nhật ảnh xe",
             data: {}
         });
     }
 
     return res.status(200).json({
         status: true,
-        message: "Motor image updated successfully",
+        message: "Ảnh xe đã được cập nhật thành công",
         data: motorImage
     });
 
 };
 
-// Delete Motor Image By Id
+// Xoá ảnh xe theo id
 const deleteMotorImageByIdHandler = async (req, res) => {
     const { id } = req.params;
     if (!id) {
         return res.status(400).json({
             status: false,
-            message: "Id is required",
+            message: "Id ảnh xe không được để trống",
             data: {}
         })
     }
@@ -118,18 +118,18 @@ const deleteMotorImageByIdHandler = async (req, res) => {
     if (!existedMotorImage) {
         return res.status(404).json({
             status: false,
-            message: `Motor image '${id}' does not existed`,
+            message: `Ảnh xe '${id}' không tồn tại`,
         })
     }
 
     try {
-        const fileName = existedMotorImage.image_url.split('/').pop(); // Get image name from URL
+        const fileName = existedMotorImage.image_url.split('/').pop(); // Lấy tên file từ url
         await minioClient.removeObject(process.env.MINIO_BUCKET_NAME, fileName);
     } catch (err) {
-        console.error('Error deleting image from MinIO:', err);
+        console.error('Lỗi khi xóa ảnh xe từ MinIO:', err);
         return res.status(500).json({
             status: false,
-            message: "Error deleting image from MinIO",
+            message: "Lỗi khi xóa ảnh xe từ MinIO",
             data: {}
         });
     }
@@ -138,23 +138,23 @@ const deleteMotorImageByIdHandler = async (req, res) => {
     if (!motorImage) {
         return res.status(404).json({
             status: false,
-            message: `Motor image '${id}' does not existed`,
+            message: `Ảnh xe '${id}' không thể xoá`,
         })
     }
     return res.status(200).json({
         status: true,
-        message: "Motor image was deleted successfully",
+        message: "Ảnh xe đã được xoá thành công",
         data: {}
     })
 };
 
-// Get Motor Image By Id
+// Lấy thông tin ảnh xe theo id
 const getMotorImageByIdHandler = async (req, res) => {
     const { id } = req.params;
     if (!id) {
         return res.status(400).json({
             status: false,
-            message: "Id is required",
+            message: "Id ảnh xe không được để trống",
             data: {}
         })
     }
@@ -163,25 +163,25 @@ const getMotorImageByIdHandler = async (req, res) => {
     if (!motorImage) {
         return res.status(404).json({
             status: false,
-            message: `Motor image '${id}' does not existed`,
+            message: `Ảnh xe '${id}' không tồn tại`,
         })
     }
 
     return res.status(200).json({
         status: true,
-        message: "Success",
+        message: "Lấy thông tin ảnh xe thành công",
         data: motorImage
     })
 };
 
-// Get All Motor Images
+// Lấy tất cả ảnh xe
 const getAllMotorImagesHandler = async (req, res) => {
     const { motor_id } = req.query;
     let motorImages = [];
     motorImages = await motorImageService.findMotorImages(motor_id);
     return res.status(200).json({
         status: true,
-        message: "Success",
+        message: "Lấy tất cả ảnh xe thành công",
         data: motorImages.rows,
         total: motorImages.count,
     })

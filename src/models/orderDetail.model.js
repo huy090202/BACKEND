@@ -5,13 +5,13 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class OrderDetail extends Model {
         static associate(models) {
-            // An order detail belongs to an order
+            // 1 chi tiết đơn hàng thuộc về 1 đơn hàng
             OrderDetail.belongsTo(models.Order, {
                 foreignKey: 'order_id',
                 as: 'order',
             });
 
-            // An order detail belongs to a motorcycle parts
+            // 1 chi tiết đơn hàng thuộc về 1 linh kiện xe máy
             OrderDetail.belongsTo(models.MotorcycleParts, {
                 foreignKey: 'part_id',
                 as: 'part',
@@ -24,6 +24,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.UUID,
             primaryKey: true,
             allowNull: false,
+            defaultValue: DataTypes.UUIDV4,
         },
         quantity: {
             type: DataTypes.INTEGER,

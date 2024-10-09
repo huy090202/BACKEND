@@ -3,26 +3,26 @@ const userService = require('../services/user.service');
 const motorService = require('../services/motor.service');
 const { APPOINTMENT_STATUS_CODE } = require('../utils/appointment');
 
-// Create Appointment
+// Tạo một lịch hẹn mới
 const createAppointmentHandler = async (req, res) => {
     const { id } = req.user;
     const { appointment_date, created_at, motor_id } = req.body;
     if (!appointment_date || !motor_id) {
         return res.status(400).json({
             status: false,
-            message: "Required fields must not be empty",
+            message: "Các trường bắt buộc không được để trống",
             data: {}
         });
     }
 
-    // yyyy-mm-dd
+    // Năm - Tháng - Ngày
     const currentDate = new Date();
     const createdAtDate = new Date(created_at);
     const appointmentDate = new Date(appointment_date);
     if (createdAtDate < currentDate) {
         return res.status(400).json({
             status: false,
-            message: "Created date cannot be in the past",
+            message: "Ngày tạo không thể ở quá khứ",
             data: {}
         });
     }
@@ -30,7 +30,7 @@ const createAppointmentHandler = async (req, res) => {
     if (appointmentDate < currentDate) {
         return res.status(400).json({
             status: false,
-            message: "Appointment date cannot be in the past",
+            message: "Ngày hẹn không thể ở quá khứ",
             data: {}
         });
     }
@@ -39,7 +39,7 @@ const createAppointmentHandler = async (req, res) => {
     if (!existedUser) {
         return res.status(400).json({
             status: false,
-            message: "User not found",
+            message: "Người dùng không tồn tại",
             data: {}
         })
     }
@@ -48,7 +48,7 @@ const createAppointmentHandler = async (req, res) => {
     if (!existedMotor) {
         return res.status(400).json({
             status: false,
-            message: "Motor not found",
+            message: "Xe không tồn tại",
             data: {}
         })
     }
@@ -60,18 +60,18 @@ const createAppointmentHandler = async (req, res) => {
     });
     return res.status(200).json({
         status: true,
-        message: "Appointment created successfully",
+        message: "Lịch hẹn đã được tạo thành công",
         data: appointment
     });
 };
 
-// Update Appointment By Id
+// Cập nhật lịch hẹn theo id
 const updateAppointmentByIdHandler = async (req, res) => {
     const { id } = req.params;
     if (!id) {
         return res.status(400).json({
             status: false,
-            message: "Id is required",
+            message: "Id lịch hẹn không được để trống",
             data: {}
         });
     }
@@ -80,7 +80,7 @@ const updateAppointmentByIdHandler = async (req, res) => {
     if (!appointment_date || !motor_id) {
         return res.status(400).json({
             status: false,
-            message: "Required fields must not be empty",
+            message: "Các trường bắt buộc không được để trống",
             data: {}
         });
     }
@@ -91,7 +91,7 @@ const updateAppointmentByIdHandler = async (req, res) => {
     if (createdAtDate < currentDate) {
         return res.status(400).json({
             status: false,
-            message: "Created date cannot be in the past",
+            message: "Ngày tạo không thể ở quá khứ",
             data: {}
         });
     }
@@ -99,7 +99,7 @@ const updateAppointmentByIdHandler = async (req, res) => {
     if (appointmentDate < currentDate) {
         return res.status(400).json({
             status: false,
-            message: "Appointment date cannot be in the past",
+            message: "Ngày hẹn không thể ở quá khứ",
             data: {}
         });
     }
@@ -108,14 +108,14 @@ const updateAppointmentByIdHandler = async (req, res) => {
     if (!existedAppointment) {
         return res.status(404).json({
             status: false,
-            message: `Appointment '${id}' does not existed`,
+            message: `Lịch hẹn '${id}' không tồn tại`,
         })
     }
 
     if (existedAppointment.status === APPOINTMENT_STATUS_CODE.CONFIRMED || existedAppointment.status === APPOINTMENT_STATUS_CODE.COMPLETED) {
         return res.status(400).json({
             status: false,
-            message: "Appointment is already confirmed or completed",
+            message: "Không thể cập nhật lịch hẹn đã được xác nhận hoặc hoàn thành",
             data: {}
         });
     }
@@ -123,18 +123,18 @@ const updateAppointmentByIdHandler = async (req, res) => {
     const appointment = await appointmentService.updateAppointmentById(id, req.body);
     return res.status(200).json({
         status: true,
-        message: "Appointment updated successfully",
+        message: "Lịch hẹn đã được cập nhật thành công",
         data: appointment
     });
 };
 
-// Change Appointment Status
+// Thay đổi trạng thái lịch hẹn
 const changeAppointmentStatusHandler = async (req, res) => {
     const { id } = req.params;
     if (!id) {
         return res.status(400).json({
             status: false,
-            message: "Id is required",
+            message: "Id lịch hẹn không được để trống",
             data: {}
         });
     }
@@ -143,7 +143,7 @@ const changeAppointmentStatusHandler = async (req, res) => {
     if (!existedAppointment) {
         return res.status(404).json({
             status: false,
-            message: `Appointment '${id}' does not existed`,
+            message: `Lịch hẹn '${id}' không tồn tại`,
         })
     }
 
@@ -151,7 +151,7 @@ const changeAppointmentStatusHandler = async (req, res) => {
     if (![APPOINTMENT_STATUS_CODE.PENDING, APPOINTMENT_STATUS_CODE.CONFIRMED, APPOINTMENT_STATUS_CODE.COMPLETED].includes(status)) {
         return res.status(400).json({
             status: false,
-            message: "Invalid status value",
+            message: "Trạng thái không hợp lệ",
         });
     }
 
@@ -161,7 +161,7 @@ const changeAppointmentStatusHandler = async (req, res) => {
         await appointmentService.changeAppointmentStatus(id, { status: statusVar });
         return res.status(200).json({
             status: true,
-            message: "Appointment status is confirmed",
+            message: "Lịch hẹn đã được xác nhận",
             data: {}
         });
     } else if (status === 'COMPLETED') {
@@ -169,7 +169,7 @@ const changeAppointmentStatusHandler = async (req, res) => {
         await appointmentService.changeAppointmentStatus(id, { status: statusVar });
         return res.status(200).json({
             status: true,
-            message: "Appointment status is completed",
+            message: "Lịch hẹn đã được hoàn thành",
             data: {}
         });
     } else if (status === 'PENDING') {
@@ -177,19 +177,19 @@ const changeAppointmentStatusHandler = async (req, res) => {
         await appointmentService.changeAppointmentStatus(id, { status: statusVar });
         return res.status(200).json({
             status: true,
-            message: "Appointment status is pending",
+            message: "Lịch hẹn đã được chuyển về trạng thái chờ xác nhận",
             data: {}
         });
     }
 };
 
-// Get Appointment By Id
+// Lấy thông tin lịch hẹn theo id
 const getAppointmentByIdHandler = async (req, res) => {
     const { id } = req.params;
     if (!id) {
         return res.status(400).json({
             status: false,
-            message: "Id is required",
+            message: "Id lịch hẹn không được để trống",
             data: {}
         });
     }
@@ -198,17 +198,17 @@ const getAppointmentByIdHandler = async (req, res) => {
     if (!appointment) {
         return res.status(404).json({
             status: false,
-            message: `Appointment '${id}' does not existed`,
+            message: `Lịch hẹn '${id}' không tồn tại`,
         })
     }
     return res.status(200).json({
         status: true,
-        message: "Appointment found",
+        message: "Lấy thông tin lịch hẹn thành công",
         data: appointment
     });
 };
 
-// Get All Appointments
+// Admin - Lấy tất cả lịch hẹn
 const getAllAppointmentsHandler = async (req, res) => {
     const { page = 1, limit = 5 } = req.query;
     const offset = (page - 1) * parseInt(limit);
@@ -217,7 +217,7 @@ const getAllAppointmentsHandler = async (req, res) => {
     appointments = await appointmentService.findAppointments({ offset, limit: parseInt(limit) });
     return res.status(200).json({
         status: true,
-        message: "Success",
+        message: "Lấy tất cả lịch hẹn thành công",
         data: appointments.rows,
         total: appointments.count,
         page: parseInt(page),
@@ -225,7 +225,7 @@ const getAllAppointmentsHandler = async (req, res) => {
     });
 };
 
-// Public - Get All Appointments
+// Public - Lấy tất cả lịch hẹn của người dùng
 const allAppointmentsHandler = async (req, res) => {
     const { id } = req.user;
     const { page = 1, limit = 5 } = req.query;
@@ -235,7 +235,7 @@ const allAppointmentsHandler = async (req, res) => {
     appointments = await appointmentService.findAppointmentsPublic({ id, offset, limit: parseInt(limit) });
     return res.status(200).json({
         status: true,
-        message: "Success",
+        message: "Lấy tất cả lịch hẹn thành công",
         data: appointments.rows,
         total: appointments.count,
         page: parseInt(page),

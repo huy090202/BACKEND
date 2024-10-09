@@ -1,37 +1,38 @@
 const { omit } = require('lodash');
 const db = require('../models/index');
+const { where } = require('sequelize');
 
-// Create Motor
+// Tạo một xe mới
 const createMotor = async (data) => {
     const motor = await db.Motor.create(data);
     return omit(motor.toJSON(), ['createdAt', 'updatedAt']);
 }
 
-// Find Motor By License Plate
+// Tìm một xe theo biển số
 const findMotorByLicensePlate = async (license_plate) => {
     const motor = await db.Motor.findOne({ where: { license_plate } });
     return motor;
 };
 
-// Find Motor By Engine Number
+// Tìm một xe theo số máy
 const findMotorByEngineNumber = async (engine_number) => {
     const motor = await db.Motor.findOne({ where: { engine_number } });
     return motor
 };
 
-// Find Motor By Chassis Number
+// Tìm một xe theo số khung
 const findMotorByChassisNumber = async (chassis_number) => {
     const motor = await db.Motor.findOne({ where: { chassis_number } });
     return motor;
 };
 
-// Find Motor By Id
+// Tìm một xe theo id
 const findMotorById = async (id) => {
     const motor = await db.Motor.findOne({ where: { id } });
     return motor;
 };
 
-// Update Motor By Id
+// Cập nhật xe theo id
 const updateMotorById = async (id, data) => {
     try {
         const motor = await findMotorById(id);
@@ -45,14 +46,15 @@ const updateMotorById = async (id, data) => {
     }
 };
 
-// Delete Motor By Id
+// Xóa xe theo id
 const deleteMotorById = async (id) => {
     return await db.Motor.destroy({ where: { id } });
 };
 
-// Get All Motors
-const findMotors = async ({ offset, limit }) => {
+// Tìm tất cả xe của người dùng
+const findMotors = async ({ userId, offset, limit }) => {
     const motors = await db.Motor.findAndCountAll({
+        where: userId,
         offset,
         limit
     });

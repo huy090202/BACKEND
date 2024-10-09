@@ -10,7 +10,7 @@ config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Setup cors
+// Cài đặt CORS
 app.use(function (req, res, next) {
     res.setHeader("Access-Control-Allow-Origin", process.env.URL_REACT);
     res.setHeader(
@@ -29,12 +29,12 @@ app.use(json({ limit: "50mb" }));
 app.use(urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 
-// Setup routes
+// Cài đặt các route
 routes(app);
 
-// Connect to database and start server
+// Kết nối đến cơ sở dữ liệu và chạy server
 connecttion();
 
 app.listen(PORT, () => {
-    console.log("Server is running on port: ", PORT);
+    console.log("Server đang được chạy ở cổng: ", PORT);
 });

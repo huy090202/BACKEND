@@ -5,7 +5,7 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class Category extends Model {
         static associate(models) {
-            // A category has many motorcycle parts
+            // 1 danh mục có nhiều linh kiện xe máy
             Category.hasMany(models.MotorcycleParts, {
                 foreignKey: 'category_id',
                 as: 'motorcycleParts',

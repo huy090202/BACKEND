@@ -38,7 +38,7 @@ const verifyToken = (token) => {
                 if (err) {
                     resolve({
                         status: false,
-                        message: "The authemtication",
+                        message: "Token không hợp lệ",
                     });
                 }
 
@@ -49,12 +49,12 @@ const verifyToken = (token) => {
 
                 resolve({
                     status: true,
-                    message: "Update token success",
+                    message: "Câp nhật token thành công",
                     access_token,
                 });
             });
         } catch (error) {
-            console.error('Error verifying token:', error);
+            console.error('Lỗi trong việc kiểm tra token:', error);
             reject(error);
         }
     });

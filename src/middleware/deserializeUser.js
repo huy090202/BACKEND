@@ -16,7 +16,7 @@ const deserializeUser = async (req, res, next) => {
             if (!user) {
                 return res.status(401).json({
                     status: false,
-                    message: 'User not found!',
+                    message: 'Người dùng không tồn tại!',
                     data: {}
                 });
             }
@@ -29,33 +29,33 @@ const deserializeUser = async (req, res, next) => {
                 if (!refreshToken) {
                     return res.status(401).json({
                         status: false,
-                        message: 'Refresh token not provided!',
+                        message: 'Refesh token không tồn tại!',
                         data: {}
                     });
                 }
 
                 try {
-                    // Verify refresh token
+                    // Kiểm tra refresh token
                     const verificationResult = await verifyToken(refreshToken);
 
                     if (verificationResult.status === 'OK') {
-                        // Sent new access token to client
+                        // Gửi lại access token mới
                         return res.json({
                             status: true,
-                            message: 'Access token has expired, but refresh token is valid!',
+                            message: 'Access token dự phòng đã được tạo!',
                             data: {
                                 accessToken: verificationResult.access_token
                             }
                         });
                     } else {
-                        // Delete refresh token if it's invalid
+                        // Xóa cookie refresh token nếu không hợp lệ
                         res.clearCookie('refresh_token', {
                             httpOnly: true,
                             secure: true
                         });
                         return res.status(401).json({
                             status: false,
-                            message: 'Invalid refresh token!',
+                            message: 'Refresh token không hợp lệ!',
                             data: {}
                         });
                     }
@@ -66,14 +66,14 @@ const deserializeUser = async (req, res, next) => {
                     });
                     return res.status(401).json({
                         status: false,
-                        message: 'Invalid refresh token!',
+                        message: 'Refresh token không hợp lệ!',
                         data: {}
                     });
                 }
             } else {
                 return res.status(401).json({
                     status: false,
-                    message: 'Invalid access token!',
+                    message: 'Access token không hợp lệ!',
                     data: {}
                 });
             }
@@ -82,7 +82,7 @@ const deserializeUser = async (req, res, next) => {
 
     return res.status(401).json({
         status: false,
-        message: 'Authorization denied!',
+        message: 'Access token không tồn tại!',
         data: {}
     });
 };

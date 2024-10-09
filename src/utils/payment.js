@@ -1,6 +1,7 @@
 const PAYMENT_METHOD_CODE = {
-    COD: "COD", // Cash on delivery
-    PAYPAL: "VNPAY", // VNPAY
+    COD: "COD", // Thanh toán khi nhận hàng
+    STRIPE: "STRIPE", // STRIPE
+    VIETQR: "VIETQR", // VIETQR
 }
 
 const PAYMENT_METHOD_KEYS = Object.keys(PAYMENT_METHOD_CODE);

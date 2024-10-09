@@ -1,19 +1,19 @@
 const { omit } = require('lodash');
 const db = require('../models/index');
 
-// Create Category
+// Tạo một danh mục mới
 const createCategory = async (data) => {
     const category = await db.Category.create(data);
     return omit(category.toJSON(), ['createdAt', 'updatedAt']);
 };
 
-// Find Category By Name
+// Tìm một danh mục theo tên
 const findCategoryByName = async (name) => {
     const category = await db.Category.findOne({ where: { name } });
     return category;
 };
 
-// Find Categories
+// Tìm tất cả danh mục
 const findCategories = async ({ status, offset, limit }) => {
     const categories = await db.Category.findAndCountAll({
         where: status,
@@ -23,23 +23,23 @@ const findCategories = async ({ status, offset, limit }) => {
     return categories;
 };
 
-// Update Category Status
+// Cập nhật trạng thái danh mục
 const updateCategory = async (id, status) => {
     return await db.Category.update({ active: status }, { where: { id } });
 };
 
-// Find Category By Id
+// Tìm một danh mục theo id
 const findCategoryById = async (id) => {
     const category = await db.Category.findOne({ where: { id } });
     return category;
 };
 
-// Delete Category By Id
+// Xóa danh mục theo id
 const deleteCategoryById = async (id) => {
     return await db.Category.destroy({ where: { id } });
 };
 
-// Update Category By Id
+// Cập nhật danh mục theo id
 const updateCategoryById = async (id, data) => {
     try {
         const category = await findCategoryById(id);
@@ -48,8 +48,8 @@ const updateCategoryById = async (id, data) => {
         await category.update(data);
         return category;
     } catch (e) {
-        console.error('Error updating category:', e);
-        throw new Error('Failed to update category');
+        console.error('Lỗi trong việc cập nhật danh mục:', e);
+        throw new Error('Có lỗi xảy ra khi cập nhật danh mục');
     }
 };
 

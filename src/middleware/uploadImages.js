@@ -2,12 +2,12 @@ const multer = require("multer");
 const minioClient = require('../configs/minio');
 const path = require('path');
 
-// Use memory storage for storing files
+// Sử dụng multer để lưu file ảnh vào bộ nhớ tạm
 const storage = multer.memoryStorage();
 
 const upload = multer({ storage: storage });
 
-// Function upload file to Minio
+// Hàm upload file lên Minio
 const uploadToMinio = (file) => {
     return new Promise((resolve, reject) => {
         const fileName = Date.now() + path.extname(file.originalname);

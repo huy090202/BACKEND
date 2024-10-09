@@ -5,7 +5,7 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class Warehouse extends Model {
         static associate(models) {
-            // A warehouse has many stocks
+            // 1 kho có nhiều số lượng linh kiện xe máy
             Warehouse.hasMany(models.Stock, {
                 foreignKey: 'warehouse_id',
                 as: 'stocks',
@@ -18,17 +18,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.UUID,
             primaryKey: true,
             allowNull: false,
+            defaultValue: DataTypes.UUIDV4,
         },
         name: {
             type: DataTypes.STRING,
             allowNull: false,
-            set(value) {
-                this.setDataValue('name', value.trim());
-            },
-            get() {
-                const rawValue = this.getDataValue('name');
-                return rawValue ? rawValue.trim() : null;
-            }
         },
         address: {
             type: DataTypes.STRING,

@@ -7,13 +7,13 @@ const { MAINTENANCE_STATUS_CODE, MAINTENANCE_STATUS_KEYS } = require('../utils/m
 module.exports = (sequelize, DataTypes) => {
     class Maintenance extends Model {
         static associate(models) {
-            // A maintenance belongs to a user
+            // 1 đơn bảo dưỡng thuộc về 1 người dùng
             Maintenance.belongsTo(models.User, {
                 foreignKey: 'user_id',
                 as: 'user',
             });
 
-            // A maintenance has many maintenance details
+            // 1 đơn bảo dưỡng có nhiều chi tiết bảo dưỡng
             Maintenance.hasMany(models.MaintenanceDetail, {
                 foreignKey: 'maintenance_id',
                 as: 'maintenanceDetails',
@@ -26,6 +26,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.UUID,
             primaryKey: true,
             allowNull: false,
+            defaultValue: DataTypes.UUIDV4,
         },
         maintenance_code: {
             type: DataTypes.STRING(6),

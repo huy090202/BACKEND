@@ -5,7 +5,7 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class MotorImage extends Model {
         static associate(models) {
-            // A motor image belongs to a motor
+            // 1 hình ảnh xe máy thuộc về 1 chiếc xe máy
             MotorImage.belongsTo(models.Motor, {
                 foreignKey: 'motor_id',
                 as: 'motor',

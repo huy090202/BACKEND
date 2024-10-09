@@ -6,13 +6,13 @@ const { APPOINTMENT_STATUS_KEYS, APPOINTMENT_STATUS_CODE } = require('../utils/a
 module.exports = (sequelize, DataTypes) => {
     class Appointment extends Model {
         static associate(models) {
-            // An appointment belongs to a user
+            // 1 lịch hẹn thuộc về 1 người dùng
             Appointment.belongsTo(models.User, {
                 foreignKey: 'user_id',
                 as: 'user',
             });
 
-            // An appointment belongs to a motor
+            // 1 lịch hẹn thuộc về 1 chiếc xe
             Appointment.belongsTo(models.Motor, {
                 foreignKey: 'motor_id',
                 as: 'motor',
