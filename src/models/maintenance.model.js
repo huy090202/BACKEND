@@ -7,10 +7,16 @@ const { MAINTENANCE_STATUS_CODE, MAINTENANCE_STATUS_KEYS } = require('../utils/m
 module.exports = (sequelize, DataTypes) => {
     class Maintenance extends Model {
         static associate(models) {
-            // 1 đơn bảo dưỡng thuộc về 1 người dùng
+            // 1 đơn bảo dưỡng thuộc về 1 kỹ thuật viên
             Maintenance.belongsTo(models.User, {
                 foreignKey: 'user_id',
                 as: 'user',
+            });
+
+            // 1 đơn bảo dưỡng thuộc về 1 chiếc xe
+            Maintenance.belongsTo(models.Motor, {
+                foreignKey: 'motor_id',
+                as: 'motor',
             });
 
             // 1 đơn bảo dưỡng có nhiều chi tiết bảo dưỡng
@@ -28,29 +34,40 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             defaultValue: DataTypes.UUIDV4,
         },
-        maintenance_code: {
-            type: DataTypes.STRING(6),
-            allowNull: false,
-            unique: true,
-        },
         status: {
             type: DataTypes.ENUM(...MAINTENANCE_STATUS_KEYS),
             defaultValue: MAINTENANCE_STATUS_CODE['RECEIVING'],
-            allowNull: false,
-        },
-        total_quantity: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
-        total_cost: {
-            type: DataTypes.DECIMAL(10, 2),
             allowNull: false,
         },
         maintenance_date: {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW,
         },
+        // Ghi chú tình trạng xe trước khi bảo dưỡng
+        notes_before: {
+            type: DataTypes.TEXT,
+            allowNull: false,
+        },
+        // Ghi chú tình trạng xe sau khi bảo dưỡng
+        notes_after: {
+            type: DataTypes.TEXT,
+            allowNull: false,
+        },
+        // Phần trăm mòn trước khi bảo dưỡng
+        wear_percentage_before: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
+        // Phần trăm mòn sau khi bảo dưỡng
+        wear_percentage_after: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
         user_id: {
+            type: DataTypes.UUID,
+            allowNull: false,
+        },
+        motor_id: {
             type: DataTypes.UUID,
             allowNull: false,
         }

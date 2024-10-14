@@ -29,12 +29,6 @@ module.exports = (sequelize, DataTypes) => {
                 as: 'images',
             });
 
-            // 1 linh kiện xe máy có nhiều chi tiết đơn hàng
-            MotorcycleParts.hasMany(models.OrderDetail, {
-                foreignKey: 'part_id',
-                as: 'orderDetails',
-            });
-
             // 1 linh kiện xe máy có nhiều chi tiết bảo dưỡng
             MotorcycleParts.hasMany(models.MaintenanceDetail, {
                 foreignKey: 'part_id',
@@ -55,6 +49,11 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         part_price: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        // Tuổi thọ trung bình của linh kiện
+        average_life: {
             type: DataTypes.STRING,
             allowNull: false,
         },

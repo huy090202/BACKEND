@@ -7,21 +7,18 @@ module.exports = {
                 type: Sequelize.UUID,
                 primaryKey: true,
                 allowNull: false,
+                defaultValue: Sequelize.UUIDV4
             },
             quantity: {
                 type: Sequelize.INTEGER,
                 allowNull: false,
             },
-            part_cost: {
+            price: {
                 type: Sequelize.DECIMAL(10, 2),
                 allowNull: false,
             },
-            total_part_cost: {
-                type: Sequelize.DECIMAL(10, 2),
-                allowNull: false,
-            },
-            labor_cost: {
-                type: Sequelize.DECIMAL(10, 2),
+            wear_percentage: {
+                type: Sequelize.INTEGER,
                 allowNull: false,
             },
             maintenance_id: {

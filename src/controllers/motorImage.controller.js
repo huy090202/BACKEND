@@ -22,10 +22,14 @@ const createMotorImageHandler = async (req, res) => {
         })
     }
 
-    let imageUrl;
-    if (req.file) {
+    let imageUrls = [];
+
+    if (req.files && req.files.length > 0) {
         try {
-            imageUrl = await uploadToMinio(req.file);
+            for (let file of req.files) {
+                const imageUrl = await uploadToMinio(file);
+                imageUrls.push(imageUrl);
+            }
         } catch (err) {
             return res.status(500).json({
                 status: false,
@@ -35,13 +39,15 @@ const createMotorImageHandler = async (req, res) => {
         }
     }
 
-    const motorImage = await motorImageService.createMotorImage({
-        image_url: imageUrl,
-        description,
-        motor_id
-    });
+    const motorImages = await Promise.all(
+        imageUrls.map((url) => motorImageService.createMotorImage({
+            image_url: url,
+            description,
+            motor_id
+        }))
+    )
 
-    if (!motorImage) {
+    if (!motorImages || motorImages.length === 0) {
         return res.status(500).json({
             status: false,
             message: "Lỗi khi tạo ảnh xe",
@@ -52,7 +58,7 @@ const createMotorImageHandler = async (req, res) => {
     return res.status(201).json({
         status: true,
         message: "Ảnh xe đã được tạo thành công",
-        data: motorImage
+        data: motorImages
     });
 };
 

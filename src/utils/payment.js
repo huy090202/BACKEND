@@ -1,7 +1,7 @@
 const PAYMENT_METHOD_CODE = {
-    COD: "COD", // Thanh toán khi nhận hàng
-    STRIPE: "STRIPE", // STRIPE
-    VIETQR: "VIETQR", // VIETQR
+    COD: "COD", // Tiền mặt
+    CARD: "CARD", // Thẻ
+    QR_CODE: "QR_CODE", // QR CODE
 }
 
 const PAYMENT_METHOD_KEYS = Object.keys(PAYMENT_METHOD_CODE);

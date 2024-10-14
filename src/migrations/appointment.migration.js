@@ -7,10 +7,27 @@ module.exports = {
                 type: Sequelize.UUID,
                 primaryKey: true,
                 allowNull: false,
+                defaultValue: Sequelize.UUIDV4
             },
             appointment_date: {
                 type: Sequelize.DATE,
                 allowNull: false
+            },
+            appointment_time: {
+                type: Sequelize.TIME,
+                allowNull: false
+            },
+            appointment_end_time: {
+                type: Sequelize.TIME,
+                allowNull: false
+            },
+            content: {
+                type: Sequelize.TEXT,
+                allowNull: true
+            },
+            image_url: {
+                type: Sequelize.STRING,
+                allowNull: true
             },
             status: {
                 type: Sequelize.ENUM("PENDING", "CONFIRMED", "COMPLETED"),

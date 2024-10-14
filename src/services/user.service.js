@@ -1,5 +1,5 @@
 const { omit } = require('lodash');
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const db = require('../models/index');
 const { ROLE_CODE } = require('../utils/roles');
 

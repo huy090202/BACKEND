@@ -16,7 +16,7 @@ const uploadToMinio = (file) => {
             if (err) {
                 return reject(err);
             }
-            const fileUrl = `${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${process.env.MINIO_BUCKET_NAME}/${fileName}`;
+            const fileUrl = `/${process.env.MINIO_BUCKET_NAME}/${fileName}`;
             resolve(fileUrl);
         });
     });

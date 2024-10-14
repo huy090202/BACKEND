@@ -7,6 +7,7 @@ module.exports = {
                 type: Sequelize.UUID,
                 primaryKey: true,
                 allowNull: false,
+                defaultValue: Sequelize.UUIDV4
             },
             motor_name: {
                 type: Sequelize.STRING,
@@ -25,11 +26,15 @@ module.exports = {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
-            active: {
-                type: Sequelize.BOOLEAN,
-                defaultValue: true,
+            engine_number: {
+                type: Sequelize.STRING,
+                allowNull: false,
             },
-            cavet: {
+            chassis_number: {
+                type: Sequelize.STRING,
+                allowNull: false,
+            },
+            created_at: {
                 type: Sequelize.STRING,
                 allowNull: false,
             },

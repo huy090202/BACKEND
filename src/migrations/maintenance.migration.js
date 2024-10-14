@@ -7,34 +7,48 @@ module.exports = {
                 type: Sequelize.UUID,
                 primaryKey: true,
                 allowNull: false,
-            },
-            maintenance_code: {
-                type: Sequelize.STRING(6),
-                allowNull: false,
-                unique: true,
+                defaultValue: Sequelize.UUIDV4
             },
             status: {
                 type: Sequelize.ENUM("RECEIVING", "INSPECTING", "UNDER_MAINTENANCE", "COMPLETED", "CANCELED"),
                 defaultValue: 'RECEIVING',
                 allowNull: false,
             },
-            total_quantity: {
-                type: Sequelize.INTEGER,
-                allowNull: false,
-            },
-            total_cost: {
-                type: Sequelize.DECIMAL(10, 2),
-                allowNull: false,
-            },
             maintenance_date: {
                 type: Sequelize.DATE,
                 defaultValue: Sequelize.NOW,
+            },
+            notes_before: {
+                type: Sequelize.TEXT,
+                allowNull: false,
+            },
+            notes_after: {
+                type: Sequelize.TEXT,
+                allowNull: false,
+            },
+            wear_percentage_before: {
+                type: Sequelize.INTEGER,
+                allowNull: false,
+            },
+            wear_percentage_after: {
+                type: Sequelize.INTEGER,
+                allowNull: false,
             },
             user_id: {
                 type: Sequelize.UUID,
                 allowNull: false,
                 references: {
                     model: 'Users',
+                    key: 'id',
+                },
+                onUpdate: 'CASCADE',
+                onDelete: 'CASCADE',
+            },
+            motor_id: {
+                type: Sequelize.UUID,
+                allowNull: false,
+                references: {
+                    model: 'Motors',
                     key: 'id',
                 },
                 onUpdate: 'CASCADE',

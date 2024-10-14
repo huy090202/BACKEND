@@ -2,28 +2,15 @@
 
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        return await queryInterface.createTable('Orders', {
+        return await queryInterface.createTable('Invoices', {
             id: {
                 type: Sequelize.UUID,
                 primaryKey: true,
                 allowNull: false,
+                defaultValue: Sequelize.UUIDV4
             },
-            order_code: {
-                type: Sequelize.STRING(6),
-                allowNull: false,
-                unique: true,
-            },
-            total_quantity: {
-                type: Sequelize.INTEGER,
-                allowNull: false,
-            },
-            total_price: {
+            total_amount: {
                 type: Sequelize.DECIMAL(10, 2),
-                allowNull: false,
-            },
-            order_status: {
-                type: Sequelize.ENUM("PENDING", "CONFIRMED", "PREPARING", "SHIPPING", "DELIVERED", "CANCELED", "INVALID", "FAILED"),
-                defaultValue: 'PENDING',
                 allowNull: false,
             },
             payment_status: {
@@ -31,22 +18,18 @@ module.exports = {
                 defaultValue: 'UNPAID',
             },
             payment_method: {
-                type: Sequelize.ENUM('COD', 'PAYPAL'),
+                type: Sequelize.ENUM('COD', 'CARD', 'QR_CODE'),
                 defaultValue: 'COD',
             },
-            delivery_method: {
-                type: Sequelize.ENUM('DELIVERY', 'CARRYOUT'),
-                defaultValue: 'DELIVERY',
-            },
-            order_date: {
+            create_at: {
                 type: Sequelize.DATE,
                 defaultValue: Sequelize.NOW,
             },
-            user_id: {
+            maintenance_id: {
                 type: Sequelize.UUID,
                 allowNull: false,
                 references: {
-                    model: 'Users',
+                    model: 'Maintenances',
                     key: 'id',
                 },
                 onUpdate: 'CASCADE',
@@ -65,6 +48,6 @@ module.exports = {
         });
     },
     down: async (queryInterface, Sequelize) => {
-        return await queryInterface.dropTable('Orders');
+        return await queryInterface.dropTable('Invoices');
     },
 }
