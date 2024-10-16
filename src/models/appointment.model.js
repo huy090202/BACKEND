@@ -17,6 +17,12 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'motor_id',
                 as: 'motor',
             });
+
+            // 1 lịch hẹn có thể có nhiều hình ảnh
+            Appointment.hasMany(models.AppointmentImage, {
+                foreignKey: 'appointment_id',
+                as: 'images',
+            });
         }
     };
 

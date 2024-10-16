@@ -27,6 +27,11 @@ const updateAppointmentById = async (id, data) => {
     }
 };
 
+// Xóa lịch hẹn đã hoàn tất theo id
+const deleteAppointmentById = async (id) => {
+    return await db.Appointment.destroy({ where: { id } });
+};
+
 // Admin - Lấy tất cả lịch hẹn
 const findAppointments = async ({ offset, limit }) => {
     const appointments = await db.Appointment.findAndCountAll({
@@ -55,6 +60,7 @@ module.exports = {
     createAppointment,
     findAppointmentById,
     updateAppointmentById,
+    deleteAppointmentById,
     findAppointments,
     changeAppointmentStatus,
     findAppointmentsPublic

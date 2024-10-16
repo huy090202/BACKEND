@@ -3,6 +3,7 @@ const { generateAccessToken, generateRefreshToken, verifyToken } = require('../s
 const { PASSWORD_VALIDATION, EMAIL_VALIDATION, PHONE_NUMBER_VALIDATION } = require('../utils/validations');
 const { ROLE_CODE } = require('../utils/roles');
 const { uploadToMinio } = require('../middleware/uploadImages');
+const minioClient = require('../configs/minio');
 
 // Tạo một người dùng mới
 const createUserHandler = async (req, res) => {
@@ -136,13 +137,27 @@ const loginUserHandler = async (req, res) => {
 
 // Cập nhật thông tin người dùng
 const updateUserHandler = async (req, res) => {
-    const { id } = req.user;
+    const { id, avatar } = req.user;
     if (!id) {
         return res.status(400).json({
             status: false,
             message: "Không có gì được cập nhật",
             data: {}
         });
+    }
+
+    if (avatar && avatar !== "" && avatar !== null) {
+        try {
+            const fileName = avatar.split('/').pop(); // Lấy tên file từ url
+            await minioClient.removeObject(process.env.MINIO_BUCKET_NAME, fileName);
+        } catch (err) {
+            console.error('Lỗi khi xóa ảnh cũ:', err);
+            return res.status(500).json({
+                status: false,
+                message: "Ảnh đại diện không tồn tại",
+                data: {}
+            });
+        }
     }
 
     let avatarUrl;
@@ -159,6 +174,34 @@ const updateUserHandler = async (req, res) => {
     }
 
     const { firstName, lastName, phoneNumber, gender, address } = req.body;
+
+    if (!firstName || !lastName || !phoneNumber) {
+        return res.status(400).json({
+            message: "Các trường bắt buộc không được để trống"
+        });
+    }
+
+    if (!phoneNumber.match(PHONE_NUMBER_VALIDATION)) {
+        return res.status(400).json({
+            status: false,
+            message: "Số điện thoại phải có 10 chữ số",
+            data: {}
+        })
+    }
+
+    // Kiểm tra số điện thoại đã tồn tại chưa
+    const phoneNumberCurrent = await userServices.getUserProfile(id);
+    if (phoneNumber !== phoneNumberCurrent.phoneNumber) {
+        const checkPhoneNumber = await userServices.getUserByPhoneNumber(phoneNumber);
+        if (checkPhoneNumber) {
+            return res.status(409).json({
+                status: false,
+                message: "Số điện thoại đã tồn tại",
+                data: {}
+            })
+        }
+    }
+
     const user = await userServices.updateUser(id, {
         ...(avatarUrl && { avatar: avatarUrl }),
         firstName,
