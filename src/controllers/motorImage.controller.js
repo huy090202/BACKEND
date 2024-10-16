@@ -73,6 +73,29 @@ const updateMotorImageByIdHandler = async (req, res) => {
         })
     }
 
+    const existedMotorImage = await motorImageService.findMotorImageById(id);
+    if (!existedMotorImage) {
+        return res.status(404).json({
+            status: false,
+            message: `Ảnh xe '${id}' không tồn tại`,
+        })
+    }
+
+    // Xóa ảnh cũ trên MinIO và trong database
+    if (existedMotorImage.image_url && existedMotorImage.image_url !== "" && existedMotorImage.image_url !== null) {
+        try {
+            const fileName = existedMotorImage.image_url.split('/').pop(); // Lấy tên file từ url
+            await minioClient.removeObject(process.env.MINIO_BUCKET_NAME, fileName);
+        } catch (err) {
+            console.error('Lỗi khi xóa ảnh xe cũ:', err);
+            return res.status(500).json({
+                status: false,
+                message: "Ảnh xe không tồn tại",
+                data: {}
+            });
+        }
+    }
+
     let imageUrl;
     if (req.file) {
         try {
@@ -183,6 +206,14 @@ const getMotorImageByIdHandler = async (req, res) => {
 // Lấy tất cả ảnh xe
 const getAllMotorImagesHandler = async (req, res) => {
     const { motor_id } = req.query;
+    if (!motor_id) {
+        return res.status(400).json({
+            status: false,
+            message: "Id xe không được để trống",
+            data: {}
+        })
+    }
+
     let motorImages = [];
     motorImages = await motorImageService.findMotorImages(motor_id);
     return res.status(200).json({
