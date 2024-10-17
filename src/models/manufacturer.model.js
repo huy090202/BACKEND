@@ -22,16 +22,9 @@ module.exports = (sequelize, DataTypes) => {
         },
         name: {
             type: DataTypes.STRING,
-            allowNull: false,
-            set(value) {
-                this.setDataValue('name', value.trim());
-            },
-            get() {
-                const rawValue = this.getDataValue('name');
-                return rawValue ? rawValue.trim() : null;
-            }
+            allowNull: false
         },
-        contry: {
+        country: {
             type: DataTypes.STRING,
             allowNull: true,
         },

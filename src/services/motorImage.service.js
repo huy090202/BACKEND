@@ -9,7 +9,7 @@ const createMotorImage = async (data) => {
 
 // Tìm một ảnh xe theo id
 const findMotorImageById = async (id) => {
-    const motorImage = await db.MotorImage.findOne({ where: { id } });
+    const motorImage = await db.MotorImage.findByPk(id)
     return motorImage;
 };
 

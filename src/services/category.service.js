@@ -30,7 +30,7 @@ const updateCategory = async (id, status) => {
 
 // Tìm một danh mục theo id
 const findCategoryById = async (id) => {
-    const category = await db.Category.findOne({ where: { id } });
+    const category = await db.Category.findByPk(id)
     return category;
 };
 
