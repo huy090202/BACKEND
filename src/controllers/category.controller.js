@@ -28,6 +28,14 @@ const createCategoryHandler = async (req, res) => {
     }
 
     const category = await categoryService.createCategory(req.body);
+    if (!category) {
+        return res.status(500).json({
+            status: false,
+            message: "Có lỗi xảy ra khi tạo danh mục",
+            data: {}
+        })
+    }
+
     return res.status(201).json({
         status: true,
         message: "Danh mục đã được tạo thành công",

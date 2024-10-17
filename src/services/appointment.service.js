@@ -9,7 +9,7 @@ const createAppointment = async (data) => {
 
 // Tìm một lịch hẹn theo id
 const findAppointmentById = async (id) => {
-    const appointment = await db.Appointment.findOne({ where: { id } });
+    const appointment = await db.Appointment.findByPk(id)
     return appointment;
 };
 

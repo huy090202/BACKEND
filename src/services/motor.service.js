@@ -28,7 +28,7 @@ const findMotorByChassisNumber = async (chassis_number) => {
 
 // Tìm một xe theo id
 const findMotorById = async (id) => {
-    const motor = await db.Motor.findOne({ where: { id } });
+    const motor = await db.Motor.findByPk(id)
     return motor;
 };
 

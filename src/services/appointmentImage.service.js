@@ -9,7 +9,7 @@ const createAppointmentImage = async (data) => {
 
 // Tìm một ảnh tình trạng xe theo id
 const findAppointmentImageById = async (id) => {
-    const appointmentImage = await db.AppointmentImage.findOne({ where: { id } });
+    const appointmentImage = await db.AppointmentImage.findByPk(id)
     return appointmentImage;
 };
 

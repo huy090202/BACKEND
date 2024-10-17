@@ -26,7 +26,7 @@ const createUser = async ({ firstName, lastName, email, phoneNumber, password })
 // Cập nhật thông tin người dùng theo id
 const updateUser = async (id, dataUpdate) => {
     try {
-        const user = await db.User.findOne({ where: { id } });
+        const user = await db.User.findByPk(id)
         if (!user) return null;
 
         await user.update(dataUpdate);
@@ -40,7 +40,7 @@ const updateUser = async (id, dataUpdate) => {
 // Thay đổi mật khẩu
 const changePassword = async ({ id, currentPassword, newPassword }) => {
     try {
-        const user = await db.User.findOne({ where: { id } });
+        const user = await db.User.findByPk(id)
         if (!user) return {
             statusCode: 404,
             status: false,
@@ -69,7 +69,7 @@ const changePassword = async ({ id, currentPassword, newPassword }) => {
 
 // Lấy thông tin người dùng
 const getUserProfile = async (id) => {
-    const user = await db.User.findOne({ where: { id } });
+    const user = await db.User.findByPk(id)
     return omit(user.toJSON(), ["password", "createdAt", "updatedAt"]);
 };
 
