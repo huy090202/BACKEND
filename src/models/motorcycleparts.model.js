@@ -49,12 +49,12 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         part_price: {
-            type: DataTypes.STRING,
+            type: DataTypes.INTEGER,
             allowNull: false,
         },
         // Tuổi thọ trung bình của linh kiện
         average_life: {
-            type: DataTypes.STRING,
+            type: DataTypes.INTEGER,
             allowNull: false,
         },
         description: {
@@ -67,7 +67,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         part_image: {
             type: DataTypes.STRING,
-            allowNull: true,
+            allowNull: false,
         },
         manufacturer_id: {
             type: DataTypes.UUID,
