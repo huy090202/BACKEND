@@ -42,7 +42,21 @@ const findMotorcycleparts = async ({ status, offset, limit }) => {
     const motorcycleparts = await db.MotorcycleParts.findAndCountAll({
         where: status,
         offset,
-        limit
+        limit,
+        include: [
+            {
+                model: db.Stock,
+                as: 'stocks',
+                include: [
+                    {
+                        model: db.Warehouse,
+                        as: 'warehouse',
+                        attributes: ['id', 'name', 'address']
+                    }
+                ],
+                attributes: ['quantity']
+            }
+        ]
     });
     return motorcycleparts;
 };

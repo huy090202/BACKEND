@@ -1,12 +1,15 @@
 const motorcyclepartsService = require('../services/motorcycleparts.service');
 const manufacturerService = require('../services/manufacturer.service');
+const stockService = require('../services/stock.service');
+const warehouseService = require('../services/warehouse.service');
 const categoryService = require('../services/category.service');
 const { uploadToMinio } = require('../middleware/uploadImages');
 const minioClient = require('../configs/minio');
+const { sequelize } = require('../models');
 
 // Tạo một phụ tùng mới
 const createMotorcyclepartsHandler = async (req, res) => {
-    const { part_name, part_price, average_life, description, active, manufacturer_id, category_id } = req.body;
+    const { part_name, part_price, average_life, description, active, manufacturer_id, category_id, quantity_part } = req.body;
     if (!part_name || !part_price || !average_life || !manufacturer_id || !category_id) {
         return res.status(400).json({
             status: false,
@@ -35,15 +38,6 @@ const createMotorcyclepartsHandler = async (req, res) => {
         return res.status(400).json({
             status: false,
             message: "Trạng thái phải là true hoặc false",
-        })
-    }
-
-    const existedPart = await motorcyclepartsService.findMotorcyclepartsByName(part_name);
-    if (existedPart) {
-        return res.status(400).json({
-            status: false,
-            message: "Phụ tùng đã tồn tại",
-            data: {}
         })
     }
 
@@ -78,30 +72,91 @@ const createMotorcyclepartsHandler = async (req, res) => {
         })
     }
 
-    const motorcycleparts = await motorcyclepartsService.createMotorcycleparts({
-        part_name,
-        part_price,
-        average_life,
-        description,
-        active,
-        manufacturer_id,
-        category_id,
-        part_image: partImage
-    });
+    // Tạo giao dịch (transaction) để đảm bảo tính toàn vẹn
+    const t = await sequelize.transaction();
 
-    if (!motorcycleparts) {
-        return res.status(400).json({
+    try {
+        // Tạo phụ tùng mới
+        const motorcycleparts = await motorcyclepartsService.createMotorcycleparts({
+            part_name,
+            part_price,
+            average_life,
+            description,
+            active,
+            manufacturer_id,
+            category_id,
+            part_image: partImage
+        }, { transaction: t });
+
+        if (!motorcycleparts) {
+            await t.rollback();
+            return res.status(400).json({
+                status: false,
+                message: "Có lỗi xảy ra khi tạo phụ tùng",
+                data: {}
+            });
+        }
+
+        // Kiểm tra và tạo số lượng linh kiện (nếu có)
+        if (quantity_part) {
+            const { quantity, warehouse_id } = quantity_part;
+            if (!quantity || !warehouse_id) {
+                await t.rollback();
+                return res.status(400).json({
+                    status: false,
+                    message: "Dữ liệu số lượng hoặc kho hàng không hợp lệ",
+                    data: {}
+                });
+            }
+
+            // Kiểm tra kho hàng có tồn tại
+            const existedWarehouse = await warehouseService.findWarehouseById(warehouse_id);
+            if (!existedWarehouse) {
+                await t.rollback();
+                return res.status(404).json({
+                    status: false,
+                    message: `Kho '${warehouse_id}' không tồn tại`,
+                });
+            }
+
+            if (quantity < 0) {
+                await t.rollback();
+                return res.status(400).json({
+                    status: false,
+                    message: "Số lượng không hợp lệ",
+                    data: {}
+                });
+            }
+
+            // Tạo số lượng cho phụ tùng
+            await stockService.createStock({
+                quantity,
+                warehouse_id,
+                part_id: motorcycleparts.id
+            }, { transaction: t });
+        }
+
+        // Commit transaction nếu tất cả đều thành công
+        await t.commit();
+
+        return res.status(201).json({
+            status: true,
+            message: "Phụ tùng đã được tạo thành công",
+            data: {
+                ...motorcycleparts,
+                ...(quantity_part && { warehouse_id: quantity_part.warehouse_id, quantity: quantity_part.quantity })
+            }
+        });
+
+    } catch (error) {
+        // Rollback transaction nếu có lỗi xảy ra
+        await t.rollback();
+        return res.status(500).json({
             status: false,
-            message: "Có lỗi xảy ra khi tạo phụ tùng",
+            message: "Lỗi khi tạo phụ tùng hoặc số lượng",
             data: {}
-        })
+        });
     }
-
-    return res.status(201).json({
-        status: true,
-        message: "Phụ tùng đã được tạo thành công",
-        data: motorcycleparts
-    })
 };
 
 // Cập nhật phụ tùng theo id
@@ -112,120 +167,149 @@ const updateMotorcyclepartsByIdHandler = async (req, res) => {
             status: false,
             message: "Id phụ tùng không được để trống",
             data: {}
-        })
+        });
     }
 
-    const existedPart = await motorcyclepartsService.findMotorcyclepartsById(id);
-    if (!existedPart) {
-        return res.status(400).json({
-            status: false,
-            message: `Phụ tùng '${id}' không tồn tại`,
-            data: {}
-        })
-    }
+    const t = await sequelize.transaction();
 
-    if (existedPart.part_image && existedPart.part_image !== "" && existedPart.part_image !== null) {
-        try {
-            const filenName = existedPart.part_image.split('/').pop();
-            await minioClient.removeObject(process.env.MINIO_BUCKET_NAME, filenName);
-        } catch (err) {
-            return res.status(500).json({
+    try {
+        const existedPart = await motorcyclepartsService.findMotorcyclepartsById(id);
+        if (!existedPart) {
+            await t.rollback();
+            return res.status(404).json({
                 status: false,
-                message: "Ảnh linh kiện không tồn tại",
+                message: `Phụ tùng '${id}' không tồn tại`,
                 data: {}
             });
         }
-    }
 
-    let partImage;
-    if (req.file) {
-        try {
-            partImage = await uploadToMinio(req.file);
-        } catch (err) {
-            return res.status(500).json({
+        if (existedPart.part_image && existedPart.part_image !== "" && existedPart.part_image !== null) {
+            try {
+                const fileName = existedPart.part_image.split('/').pop();
+                await minioClient.removeObject(process.env.MINIO_BUCKET_NAME, fileName);
+            } catch (err) {
+                await t.rollback();
+                return res.status(500).json({
+                    status: false,
+                    message: "Lỗi khi xóa ảnh cũ",
+                    data: {}
+                });
+            }
+        }
+
+        let partImage;
+        if (req.file) {
+            try {
+                partImage = await uploadToMinio(req.file);
+            } catch (err) {
+                await t.rollback();
+                return res.status(500).json({
+                    status: false,
+                    message: "Lỗi khi tải ảnh lên",
+                    data: {}
+                });
+            }
+        }
+
+        const { part_name, part_price, average_life, description, active, manufacturer_id, category_id, quantity_part } = req.body;
+
+        if (!part_name || !part_price || !average_life || !manufacturer_id || !category_id) {
+            await t.rollback();
+            return res.status(400).json({
                 status: false,
-                message: "Lỗi khi tải ảnh lên",
+                message: "Các trường bắt buộc không được để trống",
                 data: {}
             });
         }
-    }
 
-    const { part_name, part_price, average_life, description, active, manufacturer_id, category_id } = req.body;
+        const updatedPart = await motorcyclepartsService.updateMotorcycleparts(id, {
+            part_name,
+            part_price,
+            average_life,
+            description,
+            active,
+            manufacturer_id,
+            category_id,
+            ...(partImage && { part_image: partImage })
+        }, { transaction: t });
 
-    if (!part_name || !part_price || !average_life || !manufacturer_id || !category_id) {
-        return res.status(400).json({
+        if (!updatedPart) {
+            await t.rollback();
+            return res.status(500).json({
+                status: false,
+                message: "Có lỗi xảy ra khi cập nhật phụ tùng",
+                data: {}
+            });
+        }
+
+        // Xử lý cập nhật số lượng phụ tùng trong kho
+        if (quantity_part) {
+            const { quantity, warehouse_id } = quantity_part;
+            if (!quantity || !warehouse_id) {
+                await t.rollback();
+                return res.status(400).json({
+                    status: false,
+                    message: "Dữ liệu về số lượng hoặc kho không hợp lệ",
+                    data: {}
+                });
+            }
+
+            const existedWarehouse = await warehouseService.findWarehouseById(warehouse_id);
+            if (!existedWarehouse) {
+                await t.rollback();
+                return res.status(404).json({
+                    status: false,
+                    message: `Kho '${warehouse_id}' không tồn tại`,
+                    data: {}
+                });
+            }
+
+            if (quantity < 0) {
+                await t.rollback();
+                return res.status(400).json({
+                    status: false,
+                    message: "Số lượng không hợp lệ",
+                    data: {}
+                });
+            }
+
+            const updatedStock = await stockService.updateStock({
+                quantity,
+                warehouse_id,
+                part_id: id
+            }, { transaction: t });
+
+            if (!updatedStock) {
+                await t.rollback();
+                return res.status(500).json({
+                    status: false,
+                    message: "Có lỗi khi cập nhật số lượng phụ tùng trong kho",
+                    data: {}
+                });
+            }
+        }
+
+        await t.commit();
+
+        return res.status(200).json({
+            status: true,
+            message: "Phụ tùng đã được cập nhật thành công",
+            data: {
+                ...updatedPart.dataValues,
+                ...(quantity_part && { warehouse_id: quantity_part.warehouse_id, quantity: quantity_part.quantity })
+            }
+        });
+    } catch (err) {
+        // Rollback nếu có lỗi
+        await t.rollback();
+        return res.status(500).json({
             status: false,
-            message: "Các trường bắt buộc không được để trống",
-            data: {}
-        })
+            message: "Có lỗi xảy ra trong quá trình xử lý",
+            data: err.message
+        });
     }
-
-    if (part_price <= 0) {
-        return res.status(400).json({
-            status: false,
-            message: "Giá phải lớn hơn 0",
-            data: {}
-        })
-    }
-
-    if (average_life <= 0) {
-        return res.status(400).json({
-            status: false,
-            message: "Tuổi thọ trung bình phải lớn hơn 0",
-            data: {}
-        })
-    }
-
-    if (active !== undefined && active !== null && typeof active !== 'boolean') {
-        return res.status(400).json({
-            status: false,
-            message: "Trạng thái phải là true hoặc false",
-        })
-    }
-
-    const existedManufacturer = await manufacturerService.findManufacturerById(manufacturer_id);
-    if (!existedManufacturer) {
-        return res.status(400).json({
-            status: false,
-            message: "Nhà sản xuất không tồn tại",
-            data: {}
-        })
-    }
-
-    const existedCategory = await categoryService.findCategoryById(category_id);
-    if (!existedCategory) {
-        return res.status(400).json({
-            status: false,
-            message: "Danh mục không tồn tại",
-            data: {}
-        })
-    }
-
-    const updatedPart = await motorcyclepartsService.updateMotorcycleparts(id, {
-        part_name,
-        part_price,
-        average_life,
-        description,
-        active,
-        manufacturer_id,
-        category_id,
-        ...(partImage && { part_image: partImage })
-    });
-
-    if (!updatedPart) {
-        return res.status(400).json({
-            status: false,
-            message: "Có lỗi xảy ra khi cập nhật phụ tùng",
-            data: {}
-        })
-    }
-
-    return res.status(200).json({
-        status: true,
-        message: "Phụ tùng đã được cập nhật thành công",
-        data: updatedPart
-    })
 };
+
 
 // Cập nhật trạng thái phụ tùng
 const changeMotorcyclepartsStatusHandler = async (req, res) => {
@@ -290,6 +374,15 @@ const deleteMotorcyclepartsByIdHandler = async (req, res) => {
         });
     }
 
+    const stockDeleted = await stockService.deleteStockById(existedPart.id);
+    if (!stockDeleted) {
+        return res.status(400).json({
+            status: false,
+            message: `Có lỗi xảy ra khi xóa số lượng linh kiện cho phụ tùng '${id}'`,
+            data: {}
+        });
+    }
+
     const part = await motorcyclepartsService.deleteMotorcyclepartsById(id);
     if (!part) {
         return res.status(400).json({
@@ -326,10 +419,23 @@ const getMotorcyclepartsByIdHandler = async (req, res) => {
         })
     }
 
+    const stock = await stockService.findStockById(id);
+    if (!stock) {
+        return res.status(404).json({
+            status: false,
+            message: `Không tìm thấy số lượng linh kiện cho phụ tùng '${id}'`,
+            data: {}
+        });
+    }
+
     return res.status(200).json({
         status: true,
         message: "Lấy thông tin phụ tùng thành công",
-        data: part
+        data: {
+            ...part.dataValues,
+            quantity: stock.quantity,
+            warehouse_id: stock.warehouse_id
+        }
     })
 };
 
@@ -349,7 +455,21 @@ const getAllMotorcyclepartsHandler = async (req, res) => {
     return res.status(200).json({
         status: true,
         message: "Lấy thông tin phụ tùng thành công",
-        data: parts.rows,
+        data: parts.rows.map(part => ({
+            id: part.id,
+            part_name: part.part_name,
+            part_price: part.part_price,
+            average_life: part.average_life,
+            description: part.description,
+            active: part.active,
+            part_image: part.part_image,
+            manufacturer_id: part.manufacturer_id,
+            category_id: part.category_id,
+            stocks: part.stocks.map(stock => ({
+                quantity: stock.quantity,
+                warehouse_id: stock.warehouse.id
+            }))
+        })),
         total: parts.count,
         page: parseInt(page),
         limit: parseInt(limit)
@@ -363,7 +483,21 @@ const getMotorcyclepartsHandler = async (req, res) => {
     return res.status(200).json({
         status: true,
         message: "Lấy thông tin phụ tùng thành công",
-        data: parts.rows,
+        data: parts.rows.map(part => ({
+            id: part.id,
+            part_name: part.part_name,
+            part_price: part.part_price,
+            average_life: part.average_life,
+            description: part.description,
+            active: part.active,
+            part_image: part.part_image,
+            manufacturer_id: part.manufacturer_id,
+            category_id: part.category_id,
+            stocks: part.stocks.map(stock => ({
+                quantity: stock.quantity,
+                warehouse_id: stock.warehouse.id
+            }))
+        })),
         total: parts.count
     })
 };
