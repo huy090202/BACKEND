@@ -25,9 +25,11 @@ app.use(function (req, res, next) {
     next();
 });
 
+app.use(express.json());
 app.use(json({ limit: "50mb" }));
 app.use(urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
+app.use(express.json());
 
 // Cài đặt các route
 routes(app);

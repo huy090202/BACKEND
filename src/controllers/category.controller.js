@@ -79,6 +79,14 @@ const updateCategoryByIdHandler = async (req, res) => {
     }
 
     const category = await categoryService.updateCategoryById(id, req.body);
+    if (!category) {
+        return res.status(500).json({
+            status: false,
+            message: "Có lỗi xảy ra khi cập nhật danh mục",
+            data: {}
+        })
+    }
+
     return res.status(200).json({
         status: true,
         message: "Danh mục đã được cập nhật thành công",
