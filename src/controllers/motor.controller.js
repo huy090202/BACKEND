@@ -1,4 +1,5 @@
 const motorService = require('../services/motor.service');
+const motorImageService = require('../services/motorImage.service');
 const userService = require('../services/user.service');
 const { ENGINE_CHASSIS_NUMBER_VALIDATION, LICENSE_PLATE_VALIDATION } = require('../utils/validations');
 
@@ -196,18 +197,22 @@ const deleteMotorByIdHandler = async (req, res) => {
         })
     }
 
-    const motor = await motorService.deleteMotorById(id);
-    if (!motor) {
-        return res.status(404).json({
-            status: false,
-            message: `Xe '${id}' không thể xoá`,
+    const deletedMotorImages = await motorImageService.deleteMotorImageByMotorId(id);
+    if (deletedMotorImages) {
+        const motor = await motorService.deleteMotorById(id);
+        if (!motor) {
+            return res.status(404).json({
+                status: false,
+                message: `Xe '${id}' không thể xoá`,
+            })
+        }
+        return res.status(200).json({
+            status: true,
+            message: "Xe đã được xoá thành công",
+            data: {}
         })
     }
-    return res.status(200).json({
-        status: true,
-        message: "Xe đã được xoá thành công",
-        data: {}
-    })
+
 };
 
 // Lấy thông tin xe theo id

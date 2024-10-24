@@ -29,7 +29,12 @@ const updateMotorImage = async (id, data) => {
 
 // Xóa ảnh xe theo id
 const deleteMotorImageById = async (id) => {
-    return await db.MotorImage.destroy({ where: { id } });
+    return await db.MotorImage.destroy(id);
+};
+
+// Xóa ảnh xe theo id xe
+const deleteMotorImageByMotorId = async (id) => {
+    return await db.MotorImage.destroy({ where: { motor_id: id } });
 };
 
 // Tìm tất cả ảnh xe của một xe
@@ -45,5 +50,6 @@ module.exports = {
     updateMotorImage,
     findMotorImageById,
     deleteMotorImageById,
-    findMotorImages
+    findMotorImages,
+    deleteMotorImageByMotorId
 };

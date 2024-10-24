@@ -1,9 +1,7 @@
 const appointmentService = require('../services/appointment.service');
 const userService = require('../services/user.service');
 const motorService = require('../services/motor.service');
-const { uploadToMinio } = require('../middleware/uploadImages');
 const { APPOINTMENT_STATUS_CODE } = require('../utils/appointment');
-const minioClient = require('../configs/minio');
 
 // Tạo một lịch hẹn mới
 const createAppointmentHandler = async (req, res) => {
