@@ -23,6 +23,12 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'appointment_id',
                 as: 'images',
             });
+
+            // 1 lịch hẹn tương ứng với 1 đơn bảo dưỡng
+            Appointment.hasOne(models.Maintenance, {
+                foreignKey: 'appointment_id',
+                as: 'maintenance',
+            });
         }
     };
 

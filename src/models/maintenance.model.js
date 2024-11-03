@@ -24,6 +24,12 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'maintenance_id',
                 as: 'maintenanceDetails',
             });
+
+            // 1 đơn bảo dưỡng tương ứng với 1 lịch hẹn
+            Maintenance.belongsTo(models.Appointment, {
+                foreignKey: 'appointment_id',
+                as: 'appointment',
+            });
         }
     };
 
@@ -63,6 +69,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false,
         },
+        // Id kỹ thuật viên thực hiện bảo dưỡng ( role = 'TECHNICIAN' )
         user_id: {
             type: DataTypes.UUID,
             allowNull: false,
@@ -70,7 +77,11 @@ module.exports = (sequelize, DataTypes) => {
         motor_id: {
             type: DataTypes.UUID,
             allowNull: false,
-        }
+        },
+        appointment_id: {
+            type: DataTypes.UUID,
+            allowNull: true,
+        },
     }, {
         sequelize,
         modelName: 'Maintenance',
