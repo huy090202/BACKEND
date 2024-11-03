@@ -1,6 +1,5 @@
 const { omit } = require('lodash');
 const db = require('../models/index');
-const { where } = require('sequelize');
 
 // Tạo một xe mới
 const createMotor = async (data) => {

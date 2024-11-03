@@ -7,6 +7,7 @@ const appointmentImageRouter = require("./appointmentImage.router");
 const manufacturerRouter = require("./manufacturer.router");
 const motorcyclepartsRouter = require("./motorcycleparts.router");
 const warehouseRouter = require("./warehouse.router");
+const maintenanceRouter = require("./maintenance.router");
 
 const routes = (app) => {
     app.use("/api/v1/user", userRouter);
@@ -18,6 +19,7 @@ const routes = (app) => {
     app.use("/api/v1/manufacturer", manufacturerRouter);
     app.use("/api/v1/part", motorcyclepartsRouter);
     app.use("/api/v1/warehouse", warehouseRouter);
+    app.use("/api/v1/maintenance", maintenanceRouter);
 };
 
 module.exports = routes;
