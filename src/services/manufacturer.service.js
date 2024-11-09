@@ -15,12 +15,17 @@ const findManufacturerByName = async (name) => {
 
 // Tìm tất cả nhà sản xuất
 const findManufacturers = async ({ status, offset, limit }) => {
-    const manufacturers = await db.Manufacturer.findAndCountAll({
+    const manufacturers = await db.Manufacturer.findAll({
         where: status,
         offset,
         limit
     });
-    return manufacturers;
+
+    const totalManufacturers = await db.Manufacturer.count();
+    return {
+        rows: manufacturers,
+        count: totalManufacturers
+    }
 };
 
 // Cập nhật trạng thái nhà sản xuất

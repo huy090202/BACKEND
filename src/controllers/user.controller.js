@@ -57,7 +57,7 @@ const createUserHandler = async (req, res) => {
         })
     }
 
-    const newUser = await userServices.createUser({ firstName, lastName, email, phoneNumber, password, role: ROLE_CODE.USER });
+    const newUser = await userServices.createUser({ firstName, lastName, email, phoneNumber, password, role: ROLE_CODE['USER'] });
     return res.status(201).json({
         status: newUser ? true : false,
         message: newUser ? "Tài khoản được đăng ký thành công." : "Đã xảy ra lỗi, vui lòng thử lại!",
@@ -325,11 +325,11 @@ const createStaffHandler = async (req, res) => {
         })
     }
 
-    let controllerRole = 'STAFF';
-    if (role === 'STAFF') controllerRole = 'STAFF';
-    if (role === 'TECH') controllerRole = 'TECH';
-    if (role === 'CASHIER') controllerRole = 'CASHIER';
-    if (role === 'ADMIN') controllerRole = 'ADMIN';
+    let controllerRole = 'Nhân viên';
+    if (role === 'Nhân viên') controllerRole = 'Nhân viên';
+    if (role === 'Kỹ thuật viên') controllerRole = 'Kỹ thuật viên';
+    if (role === 'Thu ngân') controllerRole = 'Thu ngân';
+    if (role === 'Quản trị viên') controllerRole = 'Quản trị viên';
 
     const newStaff = await userServices.createStaff({ firstName, lastName, email, phoneNumber, password, role: controllerRole });
     return res.status(201).json({

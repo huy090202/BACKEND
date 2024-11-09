@@ -2,6 +2,8 @@
 
 const { Model } = require('sequelize');
 
+const { MOTOR_TYPE_CODE } = require('../utils/motorType')
+
 module.exports = (sequelize, DataTypes) => {
     class Motor extends Model {
         static associate(models) {
@@ -37,9 +39,9 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         motor_type: {
-            type: DataTypes.ENUM('UNDERBONE', 'SCOOTER', 'MANUAL', 'BIGBIKE'), // Xe số, Xe ga, Xe côn, Xe phân khối lớn
+            type: DataTypes.ENUM(...Object.values(MOTOR_TYPE_CODE)),
             allowNull: false,
-            defaultValue: 'UNDERBONE', // Xe số
+            defaultValue: MOTOR_TYPE_CODE['UNDERBONE'],
         },
         motor_color: {
             type: DataTypes.STRING,

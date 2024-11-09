@@ -15,12 +15,17 @@ const findCategoryByName = async (name) => {
 
 // Tìm tất cả danh mục
 const findCategories = async ({ status, offset, limit }) => {
-    const categories = await db.Category.findAndCountAll({
+    const categories = await db.Category.findAll({
         where: status,
         offset,
         limit
     });
-    return categories;
+
+    const totalCategories = await db.Category.count();
+    return {
+        rows: categories,
+        count: totalCategories
+    }
 };
 
 // Cập nhật trạng thái danh mục

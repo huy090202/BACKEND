@@ -44,7 +44,7 @@ const findMaintenances = async ({ userId, offset, limit }) => {
 
 // Tìm tất cả đơn bảo dưỡng của hệ thống
 const findAllMaintenances = async ({ offset, limit }) => {
-    const maintenances = await db.Maintenance.findAndCountAll({
+    const maintenances = await db.Maintenance.findAll({
         offset,
         limit,
         include: [
@@ -64,7 +64,12 @@ const findAllMaintenances = async ({ offset, limit }) => {
             }
         ]
     });
-    return maintenances;
+
+    const totalMaintenances = await db.Maintenance.count();
+    return {
+        rows: maintenances,
+        count: totalMaintenances
+    }
 };
 
 // Câp nhật trạng thái đơn bảo dưỡng

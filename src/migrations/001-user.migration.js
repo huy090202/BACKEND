@@ -42,8 +42,8 @@ module.exports = {
                 allowNull: false,
             },
             gender: {
-                type: Sequelize.ENUM('MALE', 'FEMALE', 'OTHER'),
-                defaultValue: 'OTHER',
+                type: Sequelize.ENUM('Nam', 'Nữ', 'Khác'),
+                defaultValue: 'Khác',
             },
             address: {
                 type: Sequelize.STRING,
@@ -52,9 +52,13 @@ module.exports = {
                 type: Sequelize.BOOLEAN,
                 defaultValue: true
             },
+            work_status: {
+                type: Sequelize.ENUM('Đang làm việc', 'Đang rảnh'),
+                defaultValue: 'Đang rảnh'
+            },
             role: {
-                type: Sequelize.ENUM('USER', 'STAFF', 'TECH', 'CASHIER', 'ADMIN'),
-                defaultValue: 'USER',
+                type: Sequelize.ENUM('Khách hàng', 'Nhân viên', 'Kỹ thuật viên', 'Thu ngân', 'Quản trị viên'),
+                defaultValue: 'Khách hàng',
             },
             createdAt: {
                 allowNull: false,

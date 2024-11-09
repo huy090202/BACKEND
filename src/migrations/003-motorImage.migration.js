@@ -2,21 +2,14 @@
 
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        return await queryInterface.createTable('MotorcycleParts', {
+        return await queryInterface.createTable('MotorImages', {
             id: {
                 type: Sequelize.UUID,
                 primaryKey: true,
                 allowNull: false,
+                defaultValue: Sequelize.UUIDV4
             },
-            part_name: {
-                type: Sequelize.STRING,
-                allowNull: false,
-            },
-            part_price: {
-                type: Sequelize.STRING,
-                allowNull: false,
-            },
-            average_life: {
+            image_url: {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
@@ -24,29 +17,11 @@ module.exports = {
                 type: Sequelize.STRING,
                 allowNull: true,
             },
-            active: {
-                type: Sequelize.BOOLEAN,
-                defaultValue: true,
-            },
-            part_image: {
-                type: Sequelize.STRING,
-                allowNull: true,
-            },
-            manufacturer_id: {
+            motor_id: {
                 type: Sequelize.UUID,
                 allowNull: false,
                 references: {
-                    model: 'Manufacturers',
-                    key: 'id',
-                },
-                onUpdate: 'CASCADE',
-                onDelete: 'CASCADE',
-            },
-            category_id: {
-                type: Sequelize.UUID,
-                allowNull: false,
-                references: {
-                    model: 'Categories',
+                    model: 'Motors',
                     key: 'id',
                 },
                 onUpdate: 'CASCADE',
@@ -64,7 +39,8 @@ module.exports = {
             },
         });
     },
+
     down: async (queryInterface, Sequelize) => {
-        return await queryInterface.dropTable('MotorcycleParts');
+        return await queryInterface.dropTable('MotorImages');
     }
 }

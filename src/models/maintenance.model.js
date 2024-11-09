@@ -2,7 +2,7 @@
 
 const { Model } = require('sequelize');
 
-const { MAINTENANCE_STATUS_CODE, MAINTENANCE_STATUS_KEYS } = require('../utils/maintenance');
+const { MAINTENANCE_STATUS_CODE } = require('../utils/maintenance');
 
 module.exports = (sequelize, DataTypes) => {
     class Maintenance extends Model {
@@ -41,7 +41,7 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: DataTypes.UUIDV4,
         },
         status: {
-            type: DataTypes.ENUM(...MAINTENANCE_STATUS_KEYS),
+            type: DataTypes.ENUM(...Object.values(MAINTENANCE_STATUS_CODE)),
             defaultValue: MAINTENANCE_STATUS_CODE['RECEIVING'],
             allowNull: false,
         },

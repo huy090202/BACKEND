@@ -14,7 +14,7 @@ const createUser = async ({ firstName, lastName, email, phoneNumber, password })
             email: email,
             phoneNumber: phoneNumber,
             password: hash,
-            role: ROLE_CODE.USER
+            role: ROLE_CODE['USER']
         });
         return omit(newUser.toJSON(), ["role", "password", "createdAt", "updatedAt"]);
     } catch (error) {

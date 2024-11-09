@@ -6,8 +6,8 @@ const { APPOINTMENT_STATUS_CODE } = require('../utils/appointment');
 // Tạo một lịch hẹn mới
 const createAppointmentHandler = async (req, res) => {
     const { id } = req.user;
-    const { appointment_date, appointment_time, appointment_end_time, created_at, motor_id, content } = req.body;
-    if (!appointment_date || !appointment_time || !appointment_end_time || !motor_id) {
+    const { appointment_date, appointment_time, created_at, motor_id, content } = req.body;
+    if (!appointment_date || !appointment_time || !motor_id) {
         return res.status(400).json({
             status: false,
             message: "Các trường bắt buộc không được để trống",
@@ -16,7 +16,7 @@ const createAppointmentHandler = async (req, res) => {
     }
 
     // Kiểm tra ngày và thời gian hẹn bảo dưỡng
-    const errorMessage = await validateAppointmentDateAndTime(appointment_date, appointment_time, appointment_end_time, created_at);
+    const errorMessage = await validateAppointmentDateAndTime(appointment_date, appointment_time, created_at);
     if (errorMessage) {
         return res.status(400).json({
             status: false,
@@ -46,7 +46,6 @@ const createAppointmentHandler = async (req, res) => {
     const appointment = await appointmentService.createAppointment({
         appointment_date, // YYYY-MM-DD
         appointment_time, // HH:MM:SS
-        appointment_end_time, // HH:MM:SS
         user_id: id,
         motor_id,
         content
@@ -78,9 +77,9 @@ const updateAppointmentByIdHandler = async (req, res) => {
         });
     }
 
-    const { appointment_date, appointment_time, appointment_end_time, created_at, motor_id, content } = req.body;
+    const { appointment_date, appointment_time, created_at, motor_id, content } = req.body;
 
-    if (!appointment_date || !appointment_time || !appointment_end_time || !motor_id) {
+    if (!appointment_date || !appointment_time || !motor_id) {
         return res.status(400).json({
             status: false,
             message: "Các trường bắt buộc không được để trống",
@@ -89,7 +88,7 @@ const updateAppointmentByIdHandler = async (req, res) => {
     }
 
     // Kiểm tra ngày và thời gian hẹn bảo dưỡng
-    const errorMessage = await validateAppointmentDateAndTime(appointment_date, appointment_time, appointment_end_time, created_at);
+    const errorMessage = await validateAppointmentDateAndTime(appointment_date, appointment_time, created_at);
     if (errorMessage) {
         return res.status(400).json({
             status: false,
@@ -106,7 +105,7 @@ const updateAppointmentByIdHandler = async (req, res) => {
         })
     }
 
-    if (existedAppointment.status === APPOINTMENT_STATUS_CODE.CONFIRMED || existedAppointment.status === APPOINTMENT_STATUS_CODE.COMPLETED) {
+    if (existedAppointment.status === APPOINTMENT_STATUS_CODE['CONFIRMED'] || existedAppointment.status === APPOINTMENT_STATUS_CODE['COMPLETED']) {
         return res.status(400).json({
             status: false,
             message: "Không thể cập nhật lịch hẹn đã được xác nhận hoặc hoàn thành",
@@ -117,7 +116,6 @@ const updateAppointmentByIdHandler = async (req, res) => {
     const appointment = await appointmentService.updateAppointmentById(id, {
         appointment_date, // YYYY-MM-DD
         appointment_time, // HH:MM:SS
-        appointment_end_time, // HH:MM:SS
         motor_id,
         content,
     });
@@ -157,7 +155,7 @@ const deleteAppointmentByIdHandler = async (req, res) => {
     }
 
     // Kiểm tra trạng thái lịch hẹn
-    if (existedAppointment.status !== APPOINTMENT_STATUS_CODE.COMPLETED) {
+    if (existedAppointment.status !== APPOINTMENT_STATUS_CODE['COMPLETED']) {
         return res.status(400).json({
             status: false,
             message: "Không thể xoá lịch hẹn chưa hoàn tất bảo dưỡng",
@@ -201,23 +199,26 @@ const changeAppointmentStatusHandler = async (req, res) => {
     }
 
     const { status } = req.body;
-    if (![APPOINTMENT_STATUS_CODE.PENDING, APPOINTMENT_STATUS_CODE.CONFIRMED, APPOINTMENT_STATUS_CODE.COMPLETED].includes(status)) {
+    if (![APPOINTMENT_STATUS_CODE['PENDING'], APPOINTMENT_STATUS_CODE['CONFIRMED'], APPOINTMENT_STATUS_CODE['COMPLETED'], APPOINTMENT_STATUS_CODE['CANCEL']].includes(status)) {
         return res.status(400).json({
             status: false,
             message: "Trạng thái không hợp lệ",
         });
     }
 
-    let statusVar = 'PENDING';
+    let statusVar = 'Chờ xác nhận';
     switch (status) {
-        case APPOINTMENT_STATUS_CODE.CONFIRMED:
-            statusVar = 'CONFIRMED';
+        case APPOINTMENT_STATUS_CODE['CONFIRMED']:
+            statusVar = 'Đã xác nhận';
             break;
-        case APPOINTMENT_STATUS_CODE.COMPLETED:
-            statusVar = 'COMPLETED';
+        case APPOINTMENT_STATUS_CODE['COMPLETED']:
+            statusVar = 'Đã hoàn thành';
             break;
-        case APPOINTMENT_STATUS_CODE.PENDING:
-            statusVar = 'PENDING';
+        case APPOINTMENT_STATUS_CODE['CANCEL']:
+            statusVar = 'Đã hủy';
+            break;
+        case APPOINTMENT_STATUS_CODE['PENDING']:
+            statusVar = 'Chờ xác nhận';
             break;
         default:
             return res.status(400).json({
@@ -295,7 +296,7 @@ const allAppointmentsHandler = async (req, res) => {
 };
 
 // Kiểm tra ngày và thời gian hẹn bảo dưỡng
-const validateAppointmentDateAndTime = async (appointment_date, appointment_time, appointment_end_time, created_at) => {
+const validateAppointmentDateAndTime = async (appointment_date, appointment_time, created_at) => {
     // Ngày - Tháng - Năm (YYYY-MM-DD)
     const currentDate = new Date();
     const createdAtDate = new Date(created_at);
@@ -309,12 +310,17 @@ const validateAppointmentDateAndTime = async (appointment_date, appointment_time
         return "Ngày hẹn không thể ở quá khứ";
     }
 
-    // Giờ - Phút - Giây (HH:MM:SS)
-    const appointmentTime = await convertTimeToSeconds(appointment_time);
-    const appointmentEndTime = await convertTimeToSeconds(appointment_end_time);
-    if (appointmentTime >= appointmentEndTime) {
-        return "Thời gian bắt đầu bảo dưỡng phải nhỏ hơn thời gian kết thúc bảo dưỡng";
+    // Kiểm tra thời gian
+    const currentSecondsOfDay = currentDate.getHours() * 3600 + currentDate.getMinutes() * 60 + currentDate.getSeconds();
+    const appointmentTimeInSeconds = await convertTimeToSeconds(appointment_time);
+
+    // Nếu ngày hẹn là ngày hôm nay, thì kiểm tra thêm giờ hẹn
+    if (appointmentDate.toDateString() === currentDate.toDateString()) {
+        if (appointmentTimeInSeconds <= currentSecondsOfDay) {
+            return "Thời gian bắt đầu bảo dưỡng phải lớn hơn thời gian hiện tại";
+        }
     }
+
 
     return null;
 };

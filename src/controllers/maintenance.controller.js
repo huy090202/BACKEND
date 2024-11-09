@@ -117,10 +117,10 @@ const createMaintenanceHandler = async (req, res) => {
                     if (quantity <= 0) {
                         await t.rollback();
                         return res.status(400).json({
-                                status: false,
-                                message: 'Số lượng linh kiện không hợp lệ',
-                                data: {}
-                            }
+                            status: false,
+                            message: 'Số lượng linh kiện không hợp lệ',
+                            data: {}
+                        }
                         );
                     }
 
@@ -320,7 +320,7 @@ const allMaintenancesHandler = async (req, res) => {
     return res.status(200).json({
         status: true,
         message: 'Lấy tất cả đơn bảo dưỡng thành công',
-        data: maintenances,
+        data: maintenances.data,
         total: maintenances.count,
         page: parseInt(page),
         limit: parseInt(limit)

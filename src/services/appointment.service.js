@@ -34,7 +34,7 @@ const deleteAppointmentById = async (id) => {
 
 // Admin - Lấy tất cả lịch hẹn
 const findAppointments = async ({ offset, limit }) => {
-    const appointments = await db.Appointment.findAndCountAll({
+    const appointments = await db.Appointment.findAll({
         offset,
         limit,
         include: [
@@ -57,14 +57,19 @@ const findAppointments = async ({ offset, limit }) => {
                 attributes: ['id', 'image_url']
             }
         ],
-        attributes: ['id', 'appointment_date', 'appointment_time', 'appointment_end_time', 'content', 'image_url', 'status', 'created_at', 'user_id', 'motor_id']
+        attributes: ['id', 'appointment_date', 'appointment_time', 'content', 'image_url', 'status', 'created_at', 'user_id', 'motor_id']
     });
-    return appointments;
+
+    const totalAppointments = await db.Appointment.count();
+    return {
+        rows: appointments,
+        count: totalAppointments
+    }
 };
 
 // Public - Lấy tất cả lịch hẹn của người dùng
 const findAppointmentsPublic = async ({ id, offset, limit }) => {
-    const appointments = await db.Appointment.findAndCountAll({
+    const appointments = await db.Appointment.findAll({
         where: { user_id: id },
         offset,
         limit,
@@ -88,14 +93,18 @@ const findAppointmentsPublic = async ({ id, offset, limit }) => {
                 attributes: ['id', 'image_url']
             }
         ],
-        attributes: ['id', 'appointment_date', 'appointment_time', 'appointment_end_time', 'content', 'image_url', 'status', 'created_at', 'user_id', 'motor_id']
+        attributes: ['id', 'appointment_date', 'appointment_time', 'content', 'image_url', 'status', 'created_at', 'user_id', 'motor_id']
     });
-    return appointments;
+    const totalAppointments = await db.Appointment.count();
+    return {
+        rows: appointments,
+        count: totalAppointments
+    }
 };
 
 // Lấy danh sách đơn bảo dưỡng theo id người dùng thông qua appointment
 const findMaintenancesByUserIdWithAppointment = async ({ id, offset, limit }) => {
-    const maintenanes = await db.Appointment.findAndCountAll({
+    const maintenanes = await db.Appointment.findAll({
         where: { user_id: id },
         offset,
         limit,

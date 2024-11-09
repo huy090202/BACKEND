@@ -2,40 +2,37 @@
 
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        return await queryInterface.createTable('Appointments', {
+        return await queryInterface.createTable('Maintenances', {
             id: {
                 type: Sequelize.UUID,
                 primaryKey: true,
                 allowNull: false,
                 defaultValue: Sequelize.UUIDV4
             },
-            appointment_date: {
-                type: Sequelize.DATE,
-                allowNull: false
-            },
-            appointment_time: {
-                type: Sequelize.TIME,
-                allowNull: false
-            },
-            appointment_end_time: {
-                type: Sequelize.TIME,
-                allowNull: false
-            },
-            content: {
-                type: Sequelize.TEXT,
-                allowNull: true
-            },
-            image_url: {
-                type: Sequelize.STRING,
-                allowNull: true
-            },
             status: {
-                type: Sequelize.ENUM("PENDING", "CONFIRMED", "COMPLETED"),
-                defaultValue: 'PENDING',
+                type: Sequelize.ENUM("Nhận xe", "Kiểm tra xe", "Đang bảo dưỡng", "Hoàn thành bảo dưỡng"),
+                defaultValue: 'Nhận xe',
+                allowNull: false,
             },
-            created_at: {
+            maintenance_date: {
                 type: Sequelize.DATE,
                 defaultValue: Sequelize.NOW,
+            },
+            notes_before: {
+                type: Sequelize.TEXT,
+                allowNull: false,
+            },
+            notes_after: {
+                type: Sequelize.TEXT,
+                allowNull: false,
+            },
+            wear_percentage_before: {
+                type: Sequelize.INTEGER,
+                allowNull: false,
+            },
+            wear_percentage_after: {
+                type: Sequelize.INTEGER,
+                allowNull: false,
             },
             user_id: {
                 type: Sequelize.UUID,
@@ -57,6 +54,16 @@ module.exports = {
                 onUpdate: 'CASCADE',
                 onDelete: 'CASCADE',
             },
+            appointment_id: {
+                type: Sequelize.UUID,
+                allowNull: false,
+                references: {
+                    model: 'Appointments',
+                    key: 'id',
+                },
+                onUpdate: 'CASCADE',
+                onDelete: 'CASCADE',
+            },
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE,
@@ -70,6 +77,6 @@ module.exports = {
         });
     },
     down: async (queryInterface, Sequelize) => {
-        return await queryInterface.dropTable('Appointments');
+        return queryInterface.dropTable('Maintenances');
     },
-};
+}

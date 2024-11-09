@@ -52,6 +52,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false,
         },
+        sale: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
         // Tuổi thọ trung bình của linh kiện
         average_life: {
             type: DataTypes.INTEGER,

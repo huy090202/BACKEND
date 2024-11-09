@@ -14,13 +14,13 @@ router.patch("/change-password", deserializeUser, userController.changePasswordH
 router.get("/profile", deserializeUser, userController.getUserProfileHandler);
 router.post("/refresh-token", deserializeUser, userController.refreshTokenHandler);
 
-router.post("/create-staff", [deserializeUser, restrictTo(["ADMIN"])], userController.createStaffHandler);
-router.patch("/update-status/:id", [deserializeUser, restrictTo(["ADMIN"])], userController.updateUserStatusHandler);
+router.post("/create-staff", [deserializeUser, restrictTo(["Quản trị viên"])], userController.createStaffHandler);
+router.patch("/update-status/:id", [deserializeUser, restrictTo(["Quản trị viên"])], userController.updateUserStatusHandler);
 
-router.get("/all", [deserializeUser, restrictTo(["STAFF", "TECH", "CASHIER", "ADMIN"])], userController.getAllUsersHandler);
-router.get("/all-staff", [deserializeUser, restrictTo(["ADMIN"])], userController.getAllStaffsHandler);
-router.get("/all-tech", [deserializeUser, restrictTo(["ADMIN"])], userController.getAllTechsHandler);
-router.get("/all-cashier", [deserializeUser, restrictTo(["ADMIN"])], userController.getAllCashiersHandler);
-router.get("/all-admin", [deserializeUser, restrictTo(["ADMIN"])], userController.getAllAdminsHandler);
+router.get("/all", [deserializeUser, restrictTo(["Nhân viên", "Kỹ thuật viên", "Thu ngân", "Quản trị viên"])], userController.getAllUsersHandler);
+router.get("/all-staff", [deserializeUser, restrictTo(["Quản trị viên"])], userController.getAllStaffsHandler);
+router.get("/all-tech", [deserializeUser, restrictTo(["Quản trị viên"])], userController.getAllTechsHandler);
+router.get("/all-cashier", [deserializeUser, restrictTo(["Quản trị viên"])], userController.getAllCashiersHandler);
+router.get("/all-admin", [deserializeUser, restrictTo(["Quản trị viên"])], userController.getAllAdminsHandler);
 
 module.exports = router;

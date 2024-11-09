@@ -2,34 +2,40 @@
 
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        return await queryInterface.createTable('Invoices', {
+        return await queryInterface.createTable('OrderDetails', {
             id: {
                 type: Sequelize.UUID,
                 primaryKey: true,
                 allowNull: false,
                 defaultValue: Sequelize.UUIDV4
             },
-            total_amount: {
+            quantity: {
+                type: Sequelize.INTEGER,
+                allowNull: false
+            },
+            price: {
                 type: Sequelize.DECIMAL(10, 2),
-                allowNull: false,
+                allowNull: false
             },
-            payment_status: {
-                type: Sequelize.ENUM('UNPAID', 'PAID'),
-                defaultValue: 'UNPAID',
+            total_price: {
+                type: Sequelize.DECIMAL(10, 2),
+                allowNull: false
             },
-            payment_method: {
-                type: Sequelize.ENUM('COD', 'CARD', 'QR_CODE'),
-                defaultValue: 'COD',
-            },
-            create_at: {
-                type: Sequelize.DATE,
-                defaultValue: Sequelize.NOW,
-            },
-            maintenance_id: {
+            order_id: {
                 type: Sequelize.UUID,
                 allowNull: false,
                 references: {
-                    model: 'Maintenances',
+                    model: 'Orders',
+                    key: 'id',
+                },
+                onUpdate: 'CASCADE',
+                onDelete: 'CASCADE',
+            },
+            part_id: {
+                type: Sequelize.UUID,
+                allowNull: false,
+                references: {
+                    model: 'MotorcycleParts',
                     key: 'id',
                 },
                 onUpdate: 'CASCADE',
@@ -45,9 +51,9 @@ module.exports = {
                 type: Sequelize.DATE,
                 defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
             },
-        });
+        })
     },
     down: async (queryInterface, Sequelize) => {
-        return await queryInterface.dropTable('Invoices');
+        return await queryInterface.dropTable('OrderDetails');
     },
 }
