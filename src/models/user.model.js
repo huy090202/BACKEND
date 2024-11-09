@@ -75,6 +75,10 @@ module.exports = (sequelize, DataTypes) => {
         address: {
             type: DataTypes.STRING,
         },
+        active: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: true,
+        },
         work_status: {
             type: DataTypes.ENUM(...Object.values(WORK_CODE)),
             defaultValue: WORK_CODE['NOT_WORKING'],
