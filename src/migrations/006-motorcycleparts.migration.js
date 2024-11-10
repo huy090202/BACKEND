@@ -2,53 +2,55 @@
 
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        return await queryInterface.createTable('Maintenances', {
+        return await queryInterface.createTable('MotorcycleParts', {
             id: {
                 type: Sequelize.UUID,
                 primaryKey: true,
                 allowNull: false,
-                defaultValue: Sequelize.UUIDV4
             },
-            status: {
-                type: Sequelize.ENUM("RECEIVING", "INSPECTING", "UNDER_MAINTENANCE", "COMPLETED", "CANCELED"),
-                defaultValue: 'RECEIVING',
+            part_name: {
+                type: Sequelize.STRING,
                 allowNull: false,
             },
-            maintenance_date: {
-                type: Sequelize.DATE,
-                defaultValue: Sequelize.NOW,
-            },
-            notes_before: {
-                type: Sequelize.TEXT,
-                allowNull: false,
-            },
-            notes_after: {
-                type: Sequelize.TEXT,
-                allowNull: false,
-            },
-            wear_percentage_before: {
+            part_price: {
                 type: Sequelize.INTEGER,
                 allowNull: false,
             },
-            wear_percentage_after: {
+            sale: {
+                type: Sequelize.INTEGER,
+                allowNull: true,
+            },
+            average_life: {
                 type: Sequelize.INTEGER,
                 allowNull: false,
             },
-            user_id: {
+            description: {
+                type: Sequelize.TEXT,
+                allowNull: true,
+            },
+            active: {
+                type: Sequelize.BOOLEAN,
+                defaultValue: true,
+            },
+            part_image: {
+                type: Sequelize.STRING,
+                allowNull: false,
+            },
+            manufacturer_id: {
                 type: Sequelize.UUID,
                 allowNull: false,
                 references: {
-                    model: 'Users',
+                    model: 'Manufacturers',
                     key: 'id',
                 },
                 onUpdate: 'CASCADE',
                 onDelete: 'CASCADE',
             },
-            motor_id: {
+            category_id: {
                 type: Sequelize.UUID,
                 allowNull: false,
                 references: {
-                    model: 'Motors',
+                    model: 'Categories',
                     key: 'id',
                 },
                 onUpdate: 'CASCADE',
@@ -67,6 +69,6 @@ module.exports = {
         });
     },
     down: async (queryInterface, Sequelize) => {
-        return queryInterface.dropTable('Maintenances');
-    },
+        return await queryInterface.dropTable('MotorcycleParts');
+    }
 }

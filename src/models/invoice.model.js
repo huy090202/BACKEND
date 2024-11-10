@@ -2,7 +2,7 @@
 
 const { Model } = require('sequelize');
 
-const { PAYMENT_STATUS_CODE, PAYMENT_METHOD_CODE, PAYMENT_METHOD_KEYS } = require('../utils/payment');
+const { PAYMENT_STATUS_CODE, PAYMENT_METHOD_CODE } = require('../utils/payment');
 
 module.exports = (sequelize, DataTypes) => {
     class Invoice extends Model {
@@ -27,11 +27,11 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
         },
         payment_status: {
-            type: DataTypes.ENUM(PAYMENT_STATUS_CODE['UNPAID'], PAYMENT_STATUS_CODE['PAID']),
+            type: DataTypes.ENUM(...Object.values(PAYMENT_STATUS_CODE)),
             defaultValue: PAYMENT_STATUS_CODE['UNPAID'],
         },
         payment_method: {
-            type: DataTypes.ENUM(...PAYMENT_METHOD_KEYS),
+            type: DataTypes.ENUM(...Object.values(PAYMENT_METHOD_CODE)),
             defaultValue: PAYMENT_METHOD_CODE['COD'],
         },
         create_at: {

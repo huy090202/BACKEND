@@ -2,6 +2,10 @@
 
 const { Model } = require('sequelize');
 
+const { GENDER_CODE } = require('../utils/gender');
+const { ROLE_CODE } = require('../utils/roles');
+const { WORK_CODE } = require('../utils/work');
+
 module.exports = (sequelize, DataTypes) => {
     class User extends Model {
         static associate(models) {
@@ -65,9 +69,8 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
         },
         gender: {
-            type: DataTypes.ENUM,
-            values: ['MALE', "FEMALE", 'OTHER'],
-            defaultValue: 'OTHER'
+            type: DataTypes.ENUM(...Object.values(GENDER_CODE)),
+            defaultValue: GENDER_CODE['OTHER']
         },
         address: {
             type: DataTypes.STRING,
@@ -76,10 +79,13 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.BOOLEAN,
             defaultValue: true,
         },
+        work_status: {
+            type: DataTypes.ENUM(...Object.values(WORK_CODE)),
+            defaultValue: WORK_CODE['NOT_WORKING'],
+        },
         role: {
-            type: DataTypes.ENUM,
-            values: ['USER', 'STAFF', 'TECH', 'CASHIER', 'ADMIN'],
-            defaultValue: 'USER',
+            type: DataTypes.ENUM(...Object.values(ROLE_CODE)),
+            defaultValue: ROLE_CODE['USER']
         }
     }, {
         sequelize,

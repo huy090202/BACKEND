@@ -1,9 +1,9 @@
 const ROLE_CODE = {
-    USER: "USER",
-    STAFF: "STAFF", // Nhân viên quản lý
-    TECH: "TECH", // Nhân viên kỹ thuật
-    CASHIER: "CASHIER", // Nhân viên thu ngân
-    ADMIN: "ADMIN",
+    USER: "Khách hàng", // Khách hàng
+    STAFF: "Nhân viên", // Nhân viên
+    TECH: "Kỹ thuật viên", // Nhân viên kỹ thuật
+    CASHIER: "Thu ngân", // Nhân viên thu ngân
+    ADMIN: "Quản trị viên",
 }
 
 module.exports = {

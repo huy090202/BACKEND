@@ -2,26 +2,34 @@
 
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        return await queryInterface.createTable('AppointmentImages', {
+        return await queryInterface.createTable('Invoices', {
             id: {
                 type: Sequelize.UUID,
                 primaryKey: true,
                 allowNull: false,
                 defaultValue: Sequelize.UUIDV4
             },
-            image_url: {
-                type: Sequelize.STRING,
+            total_amount: {
+                type: Sequelize.DECIMAL(10, 2),
                 allowNull: false,
             },
-            description: {
-                type: Sequelize.STRING,
-                allowNull: true,
+            payment_status: {
+                type: Sequelize.ENUM('Chưa thanh toán', 'Đã thanh toán'),
+                defaultValue: 'Chưa thanh toán',
             },
-            appointment_id: {
+            payment_method: {
+                type: Sequelize.ENUM('Tiền mặt', 'ZALOPAY'),
+                defaultValue: 'Tiền mặt',
+            },
+            create_at: {
+                type: Sequelize.DATE,
+                defaultValue: Sequelize.NOW,
+            },
+            maintenance_id: {
                 type: Sequelize.UUID,
                 allowNull: false,
                 references: {
-                    model: 'Appointments',
+                    model: 'Maintenances',
                     key: 'id',
                 },
                 onUpdate: 'CASCADE',
@@ -35,11 +43,11 @@ module.exports = {
             updatedAt: {
                 allowNull: false,
                 type: Sequelize.DATE,
-                defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+                defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
             },
         });
     },
     down: async (queryInterface, Sequelize) => {
-        return await queryInterface.dropTable('AppointmentImages');
-    }
-};
+        return await queryInterface.dropTable('Invoices');
+    },
+}

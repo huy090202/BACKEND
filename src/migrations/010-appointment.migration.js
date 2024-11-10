@@ -2,55 +2,52 @@
 
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        return await queryInterface.createTable('Motors', {
+        return await queryInterface.createTable('Appointments', {
             id: {
                 type: Sequelize.UUID,
                 primaryKey: true,
                 allowNull: false,
                 defaultValue: Sequelize.UUIDV4
             },
-            motor_name: {
-                type: Sequelize.STRING,
-                allowNull: false,
+            appointment_date: {
+                type: Sequelize.DATE,
+                allowNull: false
             },
-            motor_type: {
-                type: Sequelize.ENUM('UNDERBONE', 'SCOOTER', 'MANUAL', 'BIGBIKE'),
-                allowNull: false,
-                defaultValue: 'UNDERBONE',
+            appointment_time: {
+                type: Sequelize.TIME,
+                allowNull: false
             },
-            motor_color: {
-                type: Sequelize.STRING,
-                allowNull: false,
+            content: {
+                type: Sequelize.TEXT,
+                allowNull: true
             },
-            license_plate: {
+            image_url: {
                 type: Sequelize.STRING,
-                allowNull: false,
+                allowNull: true
             },
-            engine_number: {
-                type: Sequelize.STRING,
-                allowNull: false,
-            },
-            chassis_number: {
-                type: Sequelize.STRING,
-                allowNull: false,
+            status: {
+                type: Sequelize.ENUM("Chờ xác nhận", "Đã xác nhận", "Đã hoàn thành", "Đã hủy"),
+                defaultValue: 'Chờ xác nhận',
             },
             created_at: {
-                type: Sequelize.STRING,
-                allowNull: false,
-            },
-            image_part: {
-                type: Sequelize.STRING,
-                allowNull: true,
-            },
-            motor_model: {
-                type: Sequelize.STRING,
-                allowNull: false,
+                type: Sequelize.DATE,
+                defaultValue: Sequelize.NOW,
             },
             user_id: {
                 type: Sequelize.UUID,
                 allowNull: false,
                 references: {
                     model: 'Users',
+                    key: 'id',
+                },
+                onUpdate: 'CASCADE',
+                onDelete: 'CASCADE',
+            },
+            motor_id: {
+                type: Sequelize.UUID,
+                allowNull: false,
+                references: {
+                    model: 'Motors',
                     key: 'id',
                 },
                 onUpdate: 'CASCADE',
@@ -69,6 +66,6 @@ module.exports = {
         });
     },
     down: async (queryInterface, Sequelize) => {
-        return await queryInterface.dropTable('Motors');
-    }
-}
+        return await queryInterface.dropTable('Appointments');
+    },
+};

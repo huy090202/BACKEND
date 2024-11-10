@@ -15,10 +15,10 @@ const createMotorHandler = async (req, res) => {
         })
     }
 
-    if (motor_type !== 'UNDERBONE' && motor_type !== 'SCOOTER' && motor_type !== 'MANUAL' && motor_type !== 'BIGBIKE') {
+    if (motor_type !== 'Xe số' && motor_type !== 'Xe ga' && motor_type !== 'Xe côn' && motor_type !== 'Xe phân khối lớn' && motor_type !== 'Xe khác') {
         return res.status(400).json({
             status: false,
-            message: "Loại xe phải là UNDERBONE, SCOOTER, MANUAL hoặc BIGBIKE",
+            message: "Loại xe phải là xe số, xe ga, xe côn, xe phân khối lớn hoặc xe khác",
             data: {}
         })
     }
@@ -121,10 +121,10 @@ const updateMotorByIdHandler = async (req, res) => {
         })
     }
 
-    if (motor_type !== 'UNDERBONE' && motor_type !== 'SCOOTER' && motor_type !== 'MANUAL' && motor_type !== 'BIGBIKE') {
+    if (motor_type !== 'Xe số' && motor_type !== 'Xe ga' && motor_type !== 'Xe côn' && motor_type !== 'Xe phân khối lớn' && motor_type !== 'Xe khác') {
         return res.status(400).json({
             status: false,
-            message: "Loại xe phải là UNDERBONE, SCOOTER, MANUAL hoặc BIGBIKE",
+            message: "Loại xe phải là xe số, xe ga, xe côn, xe phân khối lớn hoặc xe khác",
             data: {}
         })
     }

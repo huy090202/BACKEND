@@ -1,7 +1,7 @@
 const GENDER_CODE = {
-    MALE: "MALE", // Nam
-    FEMALE: "FEMALE", // Nữ
-    OTHER: "OTHER", // Khác
+    MALE: "Nam", // Nam
+    FEMALE: "Nữ", // Nữ
+    OTHER: "Khác", // Khác
 }
 
 module.exports = {

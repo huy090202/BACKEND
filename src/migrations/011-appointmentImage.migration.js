@@ -2,7 +2,7 @@
 
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        return await queryInterface.createTable('MotorImages', {
+        return await queryInterface.createTable('AppointmentImages', {
             id: {
                 type: Sequelize.UUID,
                 primaryKey: true,
@@ -17,11 +17,11 @@ module.exports = {
                 type: Sequelize.STRING,
                 allowNull: true,
             },
-            motor_id: {
+            appointment_id: {
                 type: Sequelize.UUID,
                 allowNull: false,
                 references: {
-                    model: 'Motors',
+                    model: 'Appointments',
                     key: 'id',
                 },
                 onUpdate: 'CASCADE',
@@ -35,12 +35,11 @@ module.exports = {
             updatedAt: {
                 allowNull: false,
                 type: Sequelize.DATE,
-                defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+                defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
             },
         });
     },
-
     down: async (queryInterface, Sequelize) => {
-        return await queryInterface.dropTable('MotorImages');
+        return await queryInterface.dropTable('AppointmentImages');
     }
-}
+};

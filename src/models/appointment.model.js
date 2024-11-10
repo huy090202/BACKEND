@@ -1,7 +1,7 @@
 'use strict';
 
 const { Model } = require('sequelize');
-const { APPOINTMENT_STATUS_KEYS, APPOINTMENT_STATUS_CODE } = require('../utils/appointment');
+const { APPOINTMENT_STATUS_CODE } = require('../utils/appointment');
 
 module.exports = (sequelize, DataTypes) => {
     class Appointment extends Model {
@@ -50,11 +50,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.TIME,
             allowNull: false
         },
-        // Thời gian kết thúc hẹn
-        appointment_end_time: {
-            type: DataTypes.TIME,
-            allowNull: false
-        },
         // Nội dung hẹn
         content: {
             type: DataTypes.TEXT,
@@ -66,7 +61,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         },
         status: {
-            type: DataTypes.ENUM(...APPOINTMENT_STATUS_KEYS),
+            type: DataTypes.ENUM(...Object.values(APPOINTMENT_STATUS_CODE)),
             defaultValue: APPOINTMENT_STATUS_CODE['PENDING'],
         },
         // Ngày đặt lịch hẹn

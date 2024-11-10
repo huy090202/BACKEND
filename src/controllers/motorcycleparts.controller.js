@@ -9,7 +9,7 @@ const { sequelize } = require('../models');
 
 // Tạo một phụ tùng mới
 const createMotorcyclepartsHandler = async (req, res) => {
-    const { part_name, part_price, average_life, description, active, manufacturer_id, category_id, quantity_part } = req.body;
+    const { part_name, part_price, sale, average_life, description, active, manufacturer_id, category_id, quantity_part } = req.body;
     if (!part_name || !part_price || !average_life || !manufacturer_id || !category_id) {
         return res.status(400).json({
             status: false,
@@ -22,6 +22,14 @@ const createMotorcyclepartsHandler = async (req, res) => {
         return res.status(400).json({
             status: false,
             message: "Giá phải lớn hơn 0",
+            data: {}
+        })
+    }
+
+    if (sale < 0) {
+        return res.status(400).json({
+            status: false,
+            message: "Giá phải lớn hơn hoặc bằng 0",
             data: {}
         })
     }
@@ -80,6 +88,7 @@ const createMotorcyclepartsHandler = async (req, res) => {
         const motorcycleparts = await motorcyclepartsService.createMotorcycleparts({
             part_name,
             part_price,
+            sale,
             average_life,
             description,
             active,
@@ -211,7 +220,7 @@ const updateMotorcyclepartsByIdHandler = async (req, res) => {
             }
         }
 
-        const { part_name, part_price, average_life, description, active, manufacturer_id, category_id, quantity_part } = req.body;
+        const { part_name, part_price, sale, average_life, description, active, manufacturer_id, category_id, quantity_part } = req.body;
 
         if (!part_name || !part_price || !average_life || !manufacturer_id || !category_id) {
             await t.rollback();
@@ -225,6 +234,7 @@ const updateMotorcyclepartsByIdHandler = async (req, res) => {
         const updatedPart = await motorcyclepartsService.updateMotorcycleparts(id, {
             part_name,
             part_price,
+            sale,
             average_life,
             description,
             active,
@@ -459,6 +469,7 @@ const getAllMotorcyclepartsHandler = async (req, res) => {
             id: part.id,
             part_name: part.part_name,
             part_price: part.part_price,
+            sale: part.sale,
             average_life: part.average_life,
             description: part.description,
             active: part.active,
@@ -487,6 +498,7 @@ const getMotorcyclepartsHandler = async (req, res) => {
             id: part.id,
             part_name: part.part_name,
             part_price: part.part_price,
+            sale: part.sale,
             average_life: part.average_life,
             description: part.description,
             active: part.active,
