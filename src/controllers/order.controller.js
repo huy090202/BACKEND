@@ -16,6 +16,7 @@ const { config } = require('dotenv');
 
 config();
 
+// Tạo đơn hàng
 const createOrderHandler = async (req, res) => {
     try {
         const { name, email, phone, notes, order_code, total_quantity, total_price, order_date, order_status, payment_status, payment_method, delivery_method, user_id, details } = req.body;
@@ -73,11 +74,12 @@ const createOrderHandler = async (req, res) => {
             payment_status: payment_status ? payment_status : PAYMENT_STATUS_CODE['UNPAID'],
             order_code: orderCode,
             user_id: req.user.id,
-            delivery_method: delivery_method ? delivery_method : DELIVERY_METHOD_CODE['CARRYOUT'],
+            delivery_method: delivery_method ? delivery_method : DELIVERY_METHOD_CODE['DELIVERY'],
             payment_method: payment_method ? payment_method : PAYMENT_METHOD_CODE['COD'],
             order_date: '',
         }
 
+        // Thanh toán khi nhận hàng (dùng tiền mặt)
         if (payment_method === PAYMENT_METHOD_CODE['COD']) {
             const t = await sequelize.transaction();
 
@@ -239,6 +241,7 @@ const createOrderHandler = async (req, res) => {
     }
 };
 
+// Xử lý thanh toán
 const paymentHandler = async (order, details) => {
     try {
         const items = await Promise.all(details.map(async (item) => {
@@ -306,6 +309,7 @@ const paymentHandler = async (order, details) => {
     }
 };
 
+// Xử lý callback từ ZaloPay
 const callbackOrderHandler = async (req, res) => {
     let result = {};
     try {
@@ -408,6 +412,7 @@ const callbackOrderHandler = async (req, res) => {
     }
 };
 
+// Kiểm tra trạng thái thanh toán
 const checkPaymentStatusHandler = async (req, res, app_trans_id) => {
     const postData = {
         app_id: zalopayConfig.app_id,
@@ -436,6 +441,7 @@ const checkPaymentStatusHandler = async (req, res, app_trans_id) => {
     }
 };
 
+// Xóa đơn hàng
 const deleteOrderHandler = async (req, res) => {
     const { code } = req.params;
     if (!code) {
@@ -463,6 +469,7 @@ const deleteOrderHandler = async (req, res) => {
     }
 };
 
+// Tra cứu đơn hàng
 const trackingOrderHandler = async (req, res) => {
     const { code } = req.query;
     if (!code) {
@@ -493,13 +500,227 @@ const trackingOrderHandler = async (req, res) => {
     });
 };
 
-const changeOrderStatusHandler = async (req, res) => { };
+// Cập nhật trạng thái đơn hàng
+const changeOrderStatusHandler = async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.query;
+    if (!id || !status) {
+        return res.status(400).json({
+            status: false,
+            message: 'ID đơn hàng và trạng thái đơn hàng không được để trống',
+            data: {}
+        });
+    }
 
-const changePaymentStatusHandler = async (req, res) => { };
+    if (!Object.values(ORDER_STATUS_CODE).includes(status)) {
+        return res.status(400).json({
+            status: false,
+            message: 'Trạng thái đơn hàng không hợp lệ',
+            data: {}
+        });
+    }
 
-const getAllOrdersHandler = async (req, res) => { };
+    let order;
+    if (status === ORDER_STATUS_CODE['DELIVERED']) {
+        order = await orderService.updateOrderStatusById(id, {
+            order_status: ORDER_STATUS_CODE['DELIVERED'],
+            payment_status: PAYMENT_STATUS_CODE['PAID']
+        });
+    } else {
+        order = await orderService.updateOrderStatusById(id, {
+            order_status: status
+        });
+    }
 
-const allOrdersHandler = async (req, res) => { };
+    if (!order) {
+        return res.status(400).json({
+            status: false,
+            message: 'Cập nhật trạng thái đơn hàng không thành công',
+            data: {}
+        });
+    }
+
+    return res.status(200).json({
+        status: true,
+        message: `Trạng thái đơn hàng đã được cập nhật thành ${status}`,
+        data: order
+    });
+};
+
+// Cập nhật trạng thái thanh toán
+const changePaymentStatusHandler = async (req, res) => {
+    const { orderCode } = req.params;
+    const { status } = req.query;
+    if (!orderCode || !status) {
+        return res.status(400).json({
+            status: false,
+            message: 'Mã đơn hàng và trạng thái thanh toán không được để trống',
+            data: {}
+        });
+    }
+
+    if (!Object.values(PAYMENT_STATUS_CODE).includes(status)) {
+        return res.status(400).json({
+            status: false,
+            message: 'Trạng thái thanh toán không hợp lệ',
+            data: {}
+        });
+    }
+
+    const order = await orderService.updateOrderPaymentStatusByCode(
+        {
+            order_code: orderCode,
+        },
+        {
+            payment_status: status
+        }
+    )
+
+    if (!order) {
+        return res.status(400).json({
+            status: false,
+            message: 'Cập nhật trạng thái thanh toán không thành công',
+            data: {}
+        });
+    }
+
+    return res.status(200).json({
+        status: true,
+        message: `Trạng thái thanh toán đã được cập nhật thành ${status}`,
+        data: {}
+    });
+};
+
+// Lấy tất cả đơn hàng của 1 người dùng
+const getAllOrdersHandler = async (req, res) => {
+    const { id } = req.user;
+    const { page = 1, limit = 5 } = req.query;
+    const offset = (page - 1) * parseInt(limit);
+
+    let orders = [];
+
+    orders = await orderService.findAllOrdersByUserId(id, {
+        offset,
+        limit: parseInt(limit)
+    })
+
+    if (!orders) {
+        return res.status(400).json({
+            status: false,
+            message: 'Không có đơn hàng nào',
+            data: {}
+        });
+    }
+
+    return res.status(200).json({
+        status: true,
+        message: 'Lấy thông tin đơn hàng thành công',
+        data: orders.rows.map((order) => ({
+            id: order.id,
+            order_code: order.order_code,
+            total_price: order.total_price,
+            total_quantity: order.total_quantity,
+            order_status: order.order_status,
+            payment_status: order.payment_status,
+            payment_method: order.payment_method,
+            delivery_method: order.delivery_method,
+            order_date: order.order_date,
+            user_id: order.user_id,
+            name: order.name,
+            email: order.email,
+            phone: order.phone,
+            notes: order.notes,
+            details: order.orderDetails.map((detailItem) => ({
+                id: detailItem.id,
+                quantity: detailItem.quantity,
+                price: detailItem.price,
+                total_price: detailItem.price * detailItem.quantity,
+                part_id: detailItem.part_id,
+                part: {
+                    part_name: detailItem.part.part_name,
+                    part_price: detailItem.part.part_price,
+                    sale: detailItem.part.sale,
+                    average_life: detailItem.part.average_life,
+                    description: detailItem.part.description,
+                    part_image: detailItem.part.part_image,
+                    category: detailItem.part.category.name,
+                    manufacturer: detailItem.part.manufacturer.name,
+                    stocks: detailItem.part.stocks.map(stock => ({
+                        warehouse_name: stock.warehouse.name,
+                        quantity: stock.quantity
+                    }))
+                }
+            }))
+        })),
+        total: orders.count,
+        page: parseInt(page),
+        limit: parseInt(limit),
+    })
+};
+
+// Lấy tất cả đơn hàng của hệ thống
+const allOrdersHandler = async (req, res) => {
+    const { page = 1, limit = 5 } = req.query;
+    const offset = (page - 1) * parseInt(limit);
+
+    const orders = await orderService.findAllOrders({
+        offset,
+        limit: parseInt(limit)
+    });
+
+    if (!orders) {
+        return res.status(400).json({
+            status: false,
+            message: 'Không có đơn hàng nào',
+            data: {}
+        });
+    }
+
+    return res.status(200).json({
+        status: true,
+        message: 'Lấy thông tin đơn hàng thành công',
+        data: orders.rows.map((order) => ({
+            id: order.id,
+            order_code: order.order_code,
+            total_price: order.total_price,
+            total_quantity: order.total_quantity,
+            order_status: order.order_status,
+            payment_status: order.payment_status,
+            payment_method: order.payment_method,
+            delivery_method: order.delivery_method,
+            order_date: order.order_date,
+            user_id: order.user_id,
+            name: order.name,
+            email: order.email,
+            phone: order.phone,
+            notes: order.notes,
+            details: order.orderDetails.map((detailItem) => ({
+                id: detailItem.id,
+                quantity: detailItem.quantity,
+                price: detailItem.price,
+                total_price: detailItem.price * detailItem.quantity,
+                part_id: detailItem.part_id,
+                part: {
+                    part_name: detailItem.part.part_name,
+                    part_price: detailItem.part.part_price,
+                    sale: detailItem.part.sale,
+                    average_life: detailItem.part.average_life,
+                    description: detailItem.part.description,
+                    part_image: detailItem.part.part_image,
+                    category: detailItem.part.category.name,
+                    manufacturer: detailItem.part.manufacturer.name,
+                    stocks: detailItem.part.stocks.map(stock => ({
+                        warehouse_name: stock.warehouse.name,
+                        quantity: stock.quantity
+                    }))
+                }
+            }))
+        })),
+        total: orders.count,
+        page: parseInt(page),
+        limit: parseInt(limit),
+    })
+};
 
 module.exports = {
     createOrderHandler,
