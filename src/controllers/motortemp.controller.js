@@ -8,7 +8,7 @@ const createMotorTempHandler = async (req, res) => {
     if (!email || !phone || !motor_name || !motor_type || !motor_color || !license_plate || !engine_number || !chassis_number || !motor_model || !created_at) {
         return res.status(400).json({
             status: false,
-            message: "Các trường bắt buộc không được sé trống",
+            message: "Các trường bắt buộc không được để trống",
             data: {}
         })
     }
@@ -81,15 +81,6 @@ const createMotorTempHandler = async (req, res) => {
         })
     }
 
-    const existedMotorTempEngineNumber = await motorTempService.findMotorTempByEngineNumber(engine_number);
-    if (existedMotorTempEngineNumber) {
-        return res.status(400).json({
-            status: false,
-            message: "Số máy xe tạm đã tồn tại",
-            data: {}
-        })
-    }
-
     const existedMotorTempChassisNumber = await motorTempService.findMotorTempByChassisNumber(chassis_number);
     if (existedMotorTempChassisNumber) {
         return res.status(400).json({
@@ -105,15 +96,6 @@ const createMotorTempHandler = async (req, res) => {
         return res.status(400).json({
             status: false,
             message: "Biển số xe đã tồn tại",
-            data: {}
-        })
-    }
-
-    const existedEngineNumber = await motorService.findMotorByEngineNumber(engine_number);
-    if (existedEngineNumber) {
-        return res.status(400).json({
-            status: false,
-            message: "Số máy xe đã tồn tại",
             data: {}
         })
     }

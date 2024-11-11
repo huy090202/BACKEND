@@ -66,15 +66,6 @@ const createMotorHandler = async (req, res) => {
         })
     }
 
-    const existedEngineNumber = await motorService.findMotorByEngineNumber(engine_number);
-    if (existedEngineNumber) {
-        return res.status(400).json({
-            status: false,
-            message: "Số máy xe đã tồn tại",
-            data: {}
-        })
-    }
-
     const existedChassisNumber = await motorService.findMotorByChassisNumber(chassis_number);
     if (existedChassisNumber) {
         return res.status(400).json({
