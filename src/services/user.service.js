@@ -104,7 +104,7 @@ const getUserByEmail = async (email) => {
 // Lấy người dùng theo số điện thoại
 const getUserByPhoneNumber = async (phoneNumber) => {
     try {
-        const user = await db.User.findOne({ where: { phoneNumber } });
+        const user = await db.User.findOne({ where: { phoneNumber: phoneNumber } });
         if (user) return omit(user?.toJSON(), ["role", "password", "createdAt", "updatedAt"]);
         return null;
     } catch (error) {

@@ -1,7 +1,9 @@
 const userServices = require('../services/user.service');
+const emailService = require('../services/email.service');
 const { generateAccessToken, generateRefreshToken, verifyToken } = require('../services/jwt.service');
 const { PASSWORD_VALIDATION, EMAIL_VALIDATION, PHONE_NUMBER_VALIDATION } = require('../utils/validations');
 const { ROLE_CODE } = require('../utils/roles');
+const generatePassword = require('../utils/generatePassword');
 const { uploadToMinio } = require('../middleware/uploadImages');
 const minioClient = require('../configs/minio');
 
@@ -62,6 +64,61 @@ const createUserHandler = async (req, res) => {
         status: newUser ? true : false,
         message: newUser ? "Tài khoản được đăng ký thành công." : "Đã xảy ra lỗi, vui lòng thử lại!",
         data: {}
+    })
+};
+
+// Tự động tạo tài khoản cho khách vãng lai
+const createGuestUserHandler = async (req, res) => {
+    const { firstName, lastName, email, phoneNumber } = req.body;
+
+    if (!firstName || !lastName || !email || !phoneNumber) {
+        return res.status(400).json({
+            message: "Các trường bắt buộc không được để trống"
+        });
+    }
+
+    if (!email.match(EMAIL_VALIDATION)) {
+        return res.status(400).json({
+            status: false,
+            message: "Định dạng email không hợp lệ",
+            data: {}
+        })
+    }
+
+    if (!phoneNumber.match(PHONE_NUMBER_VALIDATION)) {
+        return res.status(400).json({
+            status: false,
+            message: "Số điện thoại phải có 10 chữ số",
+            data: {}
+        })
+    }
+
+    const checkUser = await userServices.getUserByEmail(email);
+    if (checkUser) {
+        return res.status(409).json({
+            status: false,
+            message: "Email đã tồn tại",
+            data: {}
+        })
+    }
+
+    const checkPhoneNumber = await userServices.getUserByPhoneNumber(phoneNumber);
+    if (checkPhoneNumber) {
+        return res.status(409).json({
+            status: false,
+            message: "Số điện thoại đã tồn tại",
+            data: {}
+        })
+    }
+
+    const password = generatePassword(10);
+
+    const newUser = await userServices.createUser({ firstName, lastName, email, phoneNumber, password, role: ROLE_CODE['USER'] });
+    await emailService.sendEmailCreateUser(email, password);
+    return res.status(201).json({
+        status: newUser ? true : false,
+        message: newUser ? "Tài khoản được đăng ký thành công." : "Đã xảy ra lỗi, vui lòng thử lại!",
+        data: newUser
     })
 };
 
@@ -484,6 +541,7 @@ const refreshTokenHandler = async (req, res) => {
 
 module.exports = {
     createUserHandler,
+    createGuestUserHandler,
     loginUserHandler,
     updateUserHandler,
     changePasswordHandler,

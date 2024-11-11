@@ -9,6 +9,8 @@ const motorcyclepartsRouter = require("./motorcycleparts.router");
 const warehouseRouter = require("./warehouse.router");
 const maintenanceRouter = require("./maintenance.router");
 const orderRouter = require("./order.router");
+const motorTempRouter = require("./motorTemp.router");
+const motorTempImageRouter = require("./motorTempImage.router");
 
 const routes = (app) => {
     app.use("/api/v1/user", userRouter);
@@ -22,6 +24,8 @@ const routes = (app) => {
     app.use("/api/v1/warehouse", warehouseRouter);
     app.use("/api/v1/maintenance", maintenanceRouter);
     app.use("/api/v1/order", orderRouter);
+    app.use("/api/v1/motorTemp", motorTempRouter);
+    app.use("/api/v1/motorTemp-image", motorTempImageRouter);
 };
 
 module.exports = routes;
