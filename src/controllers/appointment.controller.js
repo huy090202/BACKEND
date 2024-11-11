@@ -1,69 +1,141 @@
 const appointmentService = require('../services/appointment.service');
 const userService = require('../services/user.service');
 const motorService = require('../services/motor.service');
+const motorTempService = require('../services/motorTemp.service');
+const emailService = require('../services/email.service');
 const { APPOINTMENT_STATUS_CODE } = require('../utils/appointment');
 
 // Tạo một lịch hẹn mới
 const createAppointmentHandler = async (req, res) => {
-    const { id } = req.user;
-    const { appointment_date, appointment_time, created_at, motor_id, content } = req.body;
-    if (!appointment_date || !appointment_time || !motor_id) {
-        return res.status(400).json({
-            status: false,
-            message: "Các trường bắt buộc không được để trống",
-            data: {}
+    try {
+        const { appointment_date, appointment_time, created_at, motor_id, content, user_id } = req.body;
+        if (!appointment_date || !appointment_time || !user_id) {
+            return res.status(400).json({
+                status: false,
+                message: "Các trường bắt buộc không được để trống",
+                data: {}
+            });
+        }
+
+        // Kiểm tra ngày và thời gian hẹn bảo dưỡng
+        const errorMessage = await validateAppointmentDateAndTime(appointment_date, appointment_time, created_at);
+        if (errorMessage) {
+            return res.status(400).json({
+                status: false,
+                message: errorMessage,
+                data: {}
+            });
+        }
+
+        const existedUser = await userService.getUserProfile(user_id);
+        if (!existedUser) {
+            return res.status(400).json({
+                status: false,
+                message: "Người dùng không tồn tại",
+                data: {}
+            })
+        }
+
+        // Nếu không có xe nào được chọn hoặc khách hàng chưa có xe nào
+        if (!motor_id) {
+            // Hiển thị ra tất cả xe tạm để kiểm tra xem có xe nào có email trùng với existedUser.email không?
+            const motorTemps = await motorTempService.findMotorTemps();
+
+            // Tìm xe tạm nào có email trùng với email của existedUser
+            const matchedMotorTemp = motorTemps.rows.find(item => item.email === existedUser.email);
+
+            if (matchedMotorTemp) {
+                const newMotor = await motorService.createMotor({
+                    motor_name: matchedMotorTemp.motor_name,
+                    motor_type: matchedMotorTemp.motor_type,
+                    motor_color: matchedMotorTemp.motor_color,
+                    license_plate: matchedMotorTemp.license_plate,
+                    engine_number: matchedMotorTemp.engine_number,
+                    chassis_number: matchedMotorTemp.chassis_number,
+                    motor_model: matchedMotorTemp.motor_model,
+                    created_at: matchedMotorTemp.created_at,
+                    user_id: user_id
+                });
+
+                const existedMotor = await motorService.findMotorById(newMotor.id);
+                if (!existedMotor) {
+                    return res.status(400).json({
+                        status: false,
+                        message: "Xe không tồn tại",
+                        data: {}
+                    })
+                }
+
+                const appointment = await appointmentService.createAppointment({
+                    appointment_date, // YYYY-MM-DD
+                    appointment_time, // HH:MM:SS
+                    user_id,
+                    motor_id: existedMotor.id,
+                    content
+                });
+
+                await motorTempService.deleteMotorTempById(matchedMotorTemp.id);
+
+                // Gửi email thông báo tạo lịch hẹn thành công
+                await emailService.sentEmailCreateAppointment(existedUser.email, appointment.appointment_date, appointment.appointment_time);
+
+                if (!appointment) {
+                    return res.status(500).json({
+                        status: false,
+                        message: "Lỗi khi tạo lịch hẹn",
+                        data: {}
+                    });
+                }
+
+                return res.status(200).json({
+                    status: true,
+                    message: "Lịch hẹn đã được tạo thành công",
+                    data: appointment
+                });
+            }
+        }
+
+        const existedMotor = await motorService.findMotorById(motor_id);
+        if (!existedMotor) {
+            return res.status(400).json({
+                status: false,
+                message: "Xe không tồn tại",
+                data: {}
+            })
+        }
+
+        const appointment = await appointmentService.createAppointment({
+            appointment_date, // YYYY-MM-DD
+            appointment_time, // HH:MM:SS
+            user_id,
+            motor_id,
+            content
         });
-    }
 
-    // Kiểm tra ngày và thời gian hẹn bảo dưỡng
-    const errorMessage = await validateAppointmentDateAndTime(appointment_date, appointment_time, created_at);
-    if (errorMessage) {
-        return res.status(400).json({
-            status: false,
-            message: errorMessage,
-            data: {}
+        // Gửi email thông báo tạo lịch hẹn thành công
+        await emailService.sentEmailCreateAppointment(existedUser.email, appointment.appointment_date, appointment.appointment_time);
+
+        if (!appointment) {
+            return res.status(500).json({
+                status: false,
+                message: "Lỗi khi tạo lịch hẹn",
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: "Lịch hẹn đã được tạo thành công",
+            data: appointment
         });
-    }
-
-    const existedUser = await userService.getUserProfile(id);
-    if (!existedUser) {
-        return res.status(400).json({
-            status: false,
-            message: "Người dùng không tồn tại",
-            data: {}
-        })
-    }
-
-    const existedMotor = await motorService.findMotorById(motor_id);
-    if (!existedMotor) {
-        return res.status(400).json({
-            status: false,
-            message: "Xe không tồn tại",
-            data: {}
-        })
-    }
-
-    const appointment = await appointmentService.createAppointment({
-        appointment_date, // YYYY-MM-DD
-        appointment_time, // HH:MM:SS
-        user_id: id,
-        motor_id,
-        content
-    });
-
-    if (!appointment) {
+    } catch (err) {
+        console.log("Có lỗi xảy ra khi tạo lịch hẹn: ", err.message);
         return res.status(500).json({
             status: false,
-            message: "Lỗi khi tạo lịch hẹn",
+            message: "Có lỗi xảy ra khi tạo lịch hẹn",
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: "Lịch hẹn đã được tạo thành công",
-        data: appointment
-    });
 };
 
 // Cập nhật lịch hẹn theo id

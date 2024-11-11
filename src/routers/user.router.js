@@ -23,4 +23,7 @@ router.get("/all-tech", [deserializeUser, restrictTo(["Quản trị viên"])], u
 router.get("/all-cashier", [deserializeUser, restrictTo(["Quản trị viên"])], userController.getAllCashiersHandler);
 router.get("/all-admin", [deserializeUser, restrictTo(["Quản trị viên"])], userController.getAllAdminsHandler);
 
+// Tự động tạo tài khoản khách hàng vãng lai
+router.post("/guest", userController.createGuestUserHandler);
+
 module.exports = router;

@@ -40,8 +40,8 @@ const updateMotorById = async (id, data) => {
         await motor.update(data);
         return motor;
     } catch (e) {
-        console.error('Error updating motor:', e);
-        throw new Error('Failed to update motor');
+        console.error('Có lỗi xảy ra khi cập nhật xe:', e);
+        throw new Error('Cập nhật xe thất bại');
     }
 };
 
