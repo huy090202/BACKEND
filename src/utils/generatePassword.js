@@ -2,7 +2,7 @@ const generatePassword = (length) => {
     const upperCaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const lowerCaseChars = "abcdefghijklmnopqrstuvwxyz";
     const numbers = "0123456789";
-    const specialChars = "@#$%^&*()";
+    const specialChars = "@#$%^&*";
 
     // Kết hợp tất cả các ký tự
     const allChars = upperCaseChars + lowerCaseChars + numbers + specialChars;

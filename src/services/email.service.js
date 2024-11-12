@@ -74,7 +74,7 @@ const sendEmailCreateUser = async (email, password) => {
             <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
                 <div style="max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 5px;">
                     <h2 style="color: #333;">Cảm ơn bạn đã tin tưởng HUYMOTORBIKE!</h2>
-                    <p>Đây là tài khoản được tự động tạo ra nhầm phụ vụ cho việc sử dụng các dịch vụ tại cửa hàng được an toàn thuật tiện hơn.</p>
+                    <p>Đây là tài khoản được tự động tạo ra nhầm phục vụ cho việc sử dụng các dịch vụ tại cửa hàng được an toàn thuật tiện hơn.</p>
                     <h3 style="color: #333;">Thông tin tài khoản:</h3>
                     <p>Tài khoản: ${email}</p>
                     <p>Mật khẩu: ${password}</p>

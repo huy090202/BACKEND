@@ -149,7 +149,7 @@ const updateAppointmentByIdHandler = async (req, res) => {
         });
     }
 
-    const { appointment_date, appointment_time, created_at, motor_id, content } = req.body;
+    const { appointment_date, appointment_time, created_at, motor_id, content, status } = req.body;
 
     if (!appointment_date || !appointment_time || !motor_id) {
         return res.status(400).json({
@@ -190,6 +190,7 @@ const updateAppointmentByIdHandler = async (req, res) => {
         appointment_time, // HH:MM:SS
         motor_id,
         content,
+        status
     });
 
     if (!appointment) {
