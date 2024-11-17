@@ -337,6 +337,33 @@ const getUserProfileHandler = async (req, res) => {
     });
 };
 
+// Chi tiết người dùng
+const getUserByIdHandler = async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({
+            status: false,
+            message: "Người dùng không tồn tại",
+            data: {}
+        });
+    }
+
+    const user = await userServices.getUserProfile(id);
+    if (!user) {
+        return res.status(400).json({
+            status: false,
+            message: "Không tìm thấy người dùng",
+            data: {}
+        });
+    }
+
+    return res.status(200).json({
+        status: true,
+        message: "Lây thông tin người dùng thành công",
+        data: user
+    });
+};
+
 // Tạo một nhân viên mới
 const createStaffHandler = async (req, res) => {
     const { firstName, lastName, email, phoneNumber, password, role } = req.body;
@@ -547,6 +574,7 @@ module.exports = {
     changePasswordHandler,
     getUserProfileHandler,
     refreshTokenHandler,
+    getUserByIdHandler,
 
     createStaffHandler,
     updateUserStatusHandler,

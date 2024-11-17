@@ -4,7 +4,7 @@ const userService = require('../services/user.service');
 const partService = require('../services/motorcycleparts.service');
 const appointmentService = require('../services/appointment.service');
 const { sequelize } = require('../models');
-const { MAINTENANCE_STATUS_CODE, MAINTENANCE_STATUS_KEYS } = require('../utils/maintenance');
+const { MAINTENANCE_STATUS_CODE } = require('../utils/maintenance');
 const { APPOINTMENT_STATUS_CODE } = require('../utils/appointment');
 
 // Tạo một đơn bảo dưỡng mới
@@ -22,9 +22,8 @@ const createMaintenanceHandler = async (req, res) => {
             user_id,
             motor_id,
             appointment_id,
-            details
         } = req.body;
-        if (!notes_before || !notes_after || !wear_percentage_before || !wear_percentage_after || !user_id || !appointment_id || !details) {
+        if (!user_id || !appointment_id) {
             return res.status(400).json({
                 status: false,
                 message: 'Các trường bắt buộc không được để trống',
@@ -36,12 +35,12 @@ const createMaintenanceHandler = async (req, res) => {
         if (!user) {
             return res.status(400).json({
                 status: false,
-                message: 'Người dùng không tồn tại',
+                message: 'Kỹ thuật viên không tồn tại',
                 data: {}
             });
         }
 
-        if (user.role !== 'TECH') {
+        if (user.role !== 'Kỹ thuật viên') {
             return res.status(400).json({
                 status: false,
                 message: 'Người dùng không phải KTV',
@@ -60,7 +59,7 @@ const createMaintenanceHandler = async (req, res) => {
 
         let custom_maintenance = {
             status: MAINTENANCE_STATUS_CODE['RECEIVING'],
-            maintenance_date,
+            maintenance_date: appointment.appointment_date,
             notes_before: notes_before,
             notes_after: notes_after,
             wear_percentage_before: wear_percentage_before,
@@ -70,108 +69,23 @@ const createMaintenanceHandler = async (req, res) => {
             appointment_id
         };
 
-        const t = await sequelize.transaction();
+        const newMainttenance = await maintenanceService.createMaintenance(custom_maintenance);
 
-        try {
-            const newMainttenance = await maintenanceService.createMaintenance(custom_maintenance, { transaction: t });
-            if (!newMainttenance) {
-                await t.rollback();
-                return res.status(400).json({
-                    status: false,
-                    message: 'Không thể tạo đơn bảo dưỡng',
-                    data: {}
-                });
-            }
-
-            if (details && Array.isArray(details)) {
-                for (let item of details) {
-                    const { quantity, price, wear_percentage, part_id } = item;
-                    if (!quantity || !price || !wear_percentage || !part_id) {
-                        await t.rollback();
-                        return res.status(400).json({
-                            status: false,
-                            message: 'Các trường bắt buộc để tạo chi tiết không được để trống',
-                            data: {}
-                        });
-                    }
-
-                    const existedPart = await partService.findMotorcyclepartsById(part_id);
-                    if (!existedPart) {
-                        await t.rollback();
-                        return res.status(400).json({
-                            status: false,
-                            message: 'Linh kiện không tồn tại',
-                            data: {}
-                        });
-                    }
-
-                    if (price < 0) {
-                        await t.rollback();
-                        return res.status(400).json({
-                            status: false,
-                            message: 'Giá linh kiện không hợp lệ',
-                            data: {}
-                        });
-                    }
-
-                    if (quantity <= 0) {
-                        await t.rollback();
-                        return res.status(400).json({
-                            status: false,
-                            message: 'Số lượng linh kiện không hợp lệ',
-                            data: {}
-                        }
-                        );
-                    }
-
-                    if (wear_percentage < 0 || wear_percentage > 100) {
-                        await t.rollback();
-                        return res.status(400).json({
-                            status: false,
-                            message: 'Phần trăm mòn không hợp lệ',
-                            data: {}
-                        });
-                    }
-
-                    await maintenanceDettailService.createMaintenanceDetail({
-                        quantity,
-                        price,
-                        wear_percentage,
-                        maintenance_id: newMainttenance.id,
-                        part_id
-                    }, { transaction: t });
-                }
-            }
-
-            await t.commit();
-
-            return res.status(201).json({
-                status: true,
-                message: 'Đơn bảo dưỡng đã được tạo thành công',
-                data: {
-                    ...newMainttenance,
-                    ...(details && {
-                        detail: details.map((item) => ({
-                            quantity: item.quantity,
-                            price: item.price,
-                            wear_percentage: item.wear_percentage,
-                            part_id: item.part_id
-                        }))
-                    })
-                }
-            });
-        } catch (e) {
-            console.error('Lỗi khi tạo đơn bảo dưỡng:', e);
-            await t.rollback();
+        if (!newMainttenance) {
             return res.status(400).json({
                 status: false,
                 message: 'Không thể tạo đơn bảo dưỡng',
                 data: {}
             });
         }
+
+        return res.status(201).json({
+            status: true,
+            message: 'Đơn bảo dưỡng đã được tạo thành công',
+            data: newMainttenance
+        });
     } catch (e) {
         console.error('Lỗi khi tạo đơn bảo dưỡng:', e);
-        await t.rollback();
         return res.status(400).json({
             status: false,
             message: 'Không thể tạo đơn bảo dưỡng',
@@ -182,12 +96,69 @@ const createMaintenanceHandler = async (req, res) => {
 
 // Cập nhật đơn bảo dưỡng theo id
 const updateMaintenanceByIdHandler = async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({
+            status: false,
+            message: 'Id đơn bảo dưỡng không được để trống',
+            data: {}
+        });
+    }
+
+    const maintenance = await maintenanceService.findMaintenanceById(id);
+    if (!maintenance) {
+        return res.status(404).json({
+            status: false,
+            message: 'Đơn bảo dưỡng không tồn tại',
+            data: {}
+        });
+    }
+
+    const {
+        status,
+        maintenance_date,
+        notes_before,
+        notes_after,
+        wear_percentage_before,
+        wear_percentage_after,
+        user_id,
+        motor_id,
+        appointment_id,
+    } = req.body;
+
+    const custom_maintenance = {
+        status: status || maintenance.status,
+        maintenance_date: maintenance_date || maintenance.maintenance_date,
+        notes_before: notes_before || maintenance.notes_before,
+        notes_after: notes_after || maintenance.notes_after,
+        wear_percentage_before: wear_percentage_before || maintenance.wear_percentage_before,
+        wear_percentage_after: wear_percentage_after || maintenance.wear_percentage_after,
+        user_id: user_id || maintenance.user_id,
+        motor_id: motor_id || maintenance.motor_id,
+        appointment_id: appointment_id || maintenance.appointment_id
+    };
+
+    const updatedMaintenance = await maintenanceService.updateMaintenanceById(id, custom_maintenance);
+
+    if (!updatedMaintenance) {
+        return res.status(400).json({
+            status: false,
+            message: 'Không thể cập nhật đơn bảo dưỡng',
+            data: {}
+        });
+    }
+
+    return res.status(200).json({
+        status: true,
+        message: 'Đơn bảo dưỡng đã được cập nhật thành công',
+        data: updatedMaintenance
+    });
 };
 
 // Cập nhật trạng thái đơn bảo dưỡng
 const changeMaintenanceStatusHandler = async (req, res) => {
     const { id } = req.params;
-    const { status } = req.query;
+    const { status } = req.body;
 
     if (!id) {
         return res.status(400).json({
@@ -197,7 +168,7 @@ const changeMaintenanceStatusHandler = async (req, res) => {
         });
     }
 
-    if (!MAINTENANCE_STATUS_KEYS.includes(status.toUpperCase())) {
+    if (!Object.values(MAINTENANCE_STATUS_CODE).includes(status)) {
         return res.status(400).json({
             status: false,
             message: 'Trạng thái không hợp lệ',
@@ -205,7 +176,7 @@ const changeMaintenanceStatusHandler = async (req, res) => {
         });
     }
     let maintenance;
-    if (status.toUpperCase() === MAINTENANCE_STATUS_CODE['COMPLETED']) {
+    if (status === MAINTENANCE_STATUS_CODE['COMPLETED']) {
         maintenance = await maintenanceService.updateMaintenanceById(id, {
             status: MAINTENANCE_STATUS_CODE['COMPLETED']
         });
@@ -214,11 +185,10 @@ const changeMaintenanceStatusHandler = async (req, res) => {
             const result = await appointmentService.changeAppointmentStatus(maintenance.appointment_id, {
                 status: APPOINTMENT_STATUS_CODE['COMPLETED']
             });
-            console.log('Cập nhật appointment:', result);
         }
     } else {
         maintenance = await maintenanceService.updateMaintenanceById(id, {
-            status: status.toUpperCase()
+            status: status
         });
     }
 
@@ -266,6 +236,29 @@ const deleteMaintenanceByIdHandler = async (req, res) => {
 
 // Tìm đơn bảo dưỡng theo id
 const getMaintenanceByIdHandler = async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({
+            status: false,
+            message: 'Id đơn bảo dưỡng không được để trống',
+            data: {}
+        });
+    }
+
+    const maintenance = await maintenanceService.findMaintenanceById(id);
+    if (!maintenance) {
+        return res.status(404).json({
+            status: false,
+            message: 'Đơn bảo dưỡng không tồn tại',
+            data: {}
+        });
+    }
+
+    return res.status(200).json({
+        status: true,
+        message: 'Lấy đơn bảo dưỡng thành công',
+        data: maintenance
+    });
 };
 
 // Tìm tất cả đơn bảo dưỡng của hệ thống
@@ -289,19 +282,26 @@ const getAllMaintenancesHandler = async (req, res) => {
             user_id: item.user_id,
             motor_id: item.motor_id,
             appointment_id: item.appointment_id,
-            details: item.maintenanceDetails.map((detail) => ({
-                id: detail.id,
-                quantity: detail.quantity,
-                price: detail.price,
-                wear_percentage: detail.wear_percentage,
-                part_id: detail.part_id
-            }))
         })),
         total: maintenances.count,
         page: parseInt(page),
         limit: parseInt(limit)
     });
 };
+
+// Tìm tất cả đơn bảo dưỡng của kỹ thuật viên phụ trách
+const getAllMaintenancesByTechHandler = async (req, res) => {
+    const { id } = req.user;
+
+    let maintenances = [];
+    maintenances = await maintenanceService.findMaintenancesByTechId(id);
+    return res.status(200).json({
+        status: true,
+        message: 'Lấy tất cả đơn bảo dưỡng của kỹ thuật viên phụ trách',
+        data: maintenances.rows,
+        total: maintenances.count,
+    });
+}
 
 // Tìm tất cả đơn bảo dưỡng của người dùng
 // Thông qua id người dùng, lấy được danh sách các lịch hẹn của người dùng đó,
@@ -327,6 +327,22 @@ const allMaintenancesHandler = async (req, res) => {
     });
 };
 
+// Lấy lịch sử bảo dưỡng của người dùng
+const allMaintenancesHistoryHandler = async (req, res) => {
+    const { user_id } = req.params;
+
+    let maintenances = [];
+    maintenances = await appointmentService.findMaintenanceHistoryByUserIdWithAppointment({
+        id: user_id,
+    });
+    return res.status(200).json({
+        status: true,
+        message: 'Lấy tất cả đơn bảo dưỡng thành công',
+        data: maintenances.data,
+        total: maintenances.count,
+    });
+};
+
 module.exports = {
     createMaintenanceHandler,
     updateMaintenanceByIdHandler,
@@ -334,5 +350,7 @@ module.exports = {
     deleteMaintenanceByIdHandler,
     getMaintenanceByIdHandler,
     getAllMaintenancesHandler,
-    allMaintenancesHandler
+    getAllMaintenancesByTechHandler,
+    allMaintenancesHandler,
+    allMaintenancesHistoryHandler
 };

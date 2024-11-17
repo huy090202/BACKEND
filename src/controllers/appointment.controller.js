@@ -228,10 +228,10 @@ const deleteAppointmentByIdHandler = async (req, res) => {
     }
 
     // Kiểm tra trạng thái lịch hẹn
-    if (existedAppointment.status !== APPOINTMENT_STATUS_CODE['COMPLETED']) {
+    if (existedAppointment.status !== APPOINTMENT_STATUS_CODE['COMPLETED'] && existedAppointment.status !== APPOINTMENT_STATUS_CODE['CANCEL']) {
         return res.status(400).json({
             status: false,
-            message: "Không thể xoá lịch hẹn chưa hoàn tất bảo dưỡng",
+            message: "Không thể xoá lịch hẹn chưa hoàn tất bảo dưỡng hoặc chưa hủy",
             data: {}
         });
     };

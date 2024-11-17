@@ -20,19 +20,19 @@ module.exports = {
             },
             notes_before: {
                 type: Sequelize.TEXT,
-                allowNull: false,
+                allowNull: true,
             },
             notes_after: {
                 type: Sequelize.TEXT,
-                allowNull: false,
+                allowNull: true,
             },
             wear_percentage_before: {
                 type: Sequelize.INTEGER,
-                allowNull: false,
+                allowNull: true,
             },
             wear_percentage_after: {
                 type: Sequelize.INTEGER,
-                allowNull: false,
+                allowNull: true,
             },
             user_id: {
                 type: Sequelize.UUID,

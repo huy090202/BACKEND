@@ -13,6 +13,7 @@ router.put("/update", deserializeUser, upload.single("avatar"), userController.u
 router.patch("/change-password", deserializeUser, userController.changePasswordHandler);
 router.get("/profile", deserializeUser, userController.getUserProfileHandler);
 router.post("/refresh-token", deserializeUser, userController.refreshTokenHandler);
+router.get("/get/:id", deserializeUser, userController.getUserByIdHandler);
 
 router.post("/create-staff", [deserializeUser, restrictTo(["Quản trị viên"])], userController.createStaffHandler);
 router.patch("/update-status/:id", [deserializeUser, restrictTo(["Quản trị viên"])], userController.updateUserStatusHandler);

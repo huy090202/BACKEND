@@ -52,22 +52,22 @@ module.exports = (sequelize, DataTypes) => {
         // Ghi chú tình trạng xe trước khi bảo dưỡng
         notes_before: {
             type: DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true,
         },
         // Ghi chú tình trạng xe sau khi bảo dưỡng
         notes_after: {
             type: DataTypes.TEXT,
-            allowNull: false,
+            allowNull: true,
         },
         // Phần trăm mòn trước khi bảo dưỡng
         wear_percentage_before: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true,
         },
         // Phần trăm mòn sau khi bảo dưỡng
         wear_percentage_after: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true,
         },
         // Id kỹ thuật viên thực hiện bảo dưỡng ( role = 'TECHNICIAN' )
         user_id: {
