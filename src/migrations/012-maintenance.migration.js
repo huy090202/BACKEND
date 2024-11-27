@@ -10,8 +10,8 @@ module.exports = {
                 defaultValue: Sequelize.UUIDV4
             },
             status: {
-                type: Sequelize.ENUM("Nhận xe", "Kiểm tra xe", "Đang bảo dưỡng", "Hoàn thành bảo dưỡng"),
-                defaultValue: 'Nhận xe',
+                type: Sequelize.ENUM("Kiểm tra xe", "Đang bảo dưỡng", "Hoàn thành bảo dưỡng", "Đã hủy"),
+                defaultValue: 'Kiểm tra xe',
                 allowNull: false,
             },
             maintenance_date: {

@@ -566,6 +566,18 @@ const refreshTokenHandler = async (req, res) => {
     })
 }
 
+// Danh sách kỹ thuật viên - public
+const allTechsHandler = async (req, res) => {
+    let techs = [];
+    techs = await userServices.findUsers({ query: { role: ROLE_CODE.TECH }, active: { active: true } });
+    return res.status(200).json({
+        status: true,
+        message: "Lấy tất cả kỹ thuật viên thành công",
+        data: techs.users,
+        total: techs.total
+    });
+}
+
 module.exports = {
     createUserHandler,
     createGuestUserHandler,
@@ -583,5 +595,7 @@ module.exports = {
     getAllStaffsHandler,
     getAllTechsHandler,
     getAllCashiersHandler,
-    getAllAdminsHandler
+    getAllAdminsHandler,
+
+    allTechsHandler
 };

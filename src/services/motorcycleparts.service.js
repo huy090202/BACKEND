@@ -56,7 +56,11 @@ const findMotorcycleparts = async ({ status, offset, limit }) => {
                 ],
                 attributes: ['quantity']
             }
-        ]
+        ],
+        order: [
+            ['createdAt', 'DESC'],
+            ['updatedAt', 'DESC']
+        ],
     });
     return motorcycleparts;
 };

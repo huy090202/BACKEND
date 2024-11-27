@@ -1,9 +1,6 @@
 const maintenanceService = require('../services/maintenance.service');
-const maintenanceDettailService = require('../services/maintenanceDetail.service');
 const userService = require('../services/user.service');
-const partService = require('../services/motorcycleparts.service');
 const appointmentService = require('../services/appointment.service');
-const { sequelize } = require('../models');
 const { MAINTENANCE_STATUS_CODE } = require('../utils/maintenance');
 const { APPOINTMENT_STATUS_CODE } = require('../utils/appointment');
 
@@ -58,7 +55,7 @@ const createMaintenanceHandler = async (req, res) => {
         }
 
         let custom_maintenance = {
-            status: MAINTENANCE_STATUS_CODE['RECEIVING'],
+            status: MAINTENANCE_STATUS_CODE['INSPECTING'],
             maintenance_date: appointment.appointment_date,
             notes_before: notes_before,
             notes_after: notes_after,

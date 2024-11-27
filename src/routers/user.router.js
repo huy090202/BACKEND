@@ -27,4 +27,7 @@ router.get("/all-admin", [deserializeUser, restrictTo(["Quản trị viên"])], 
 // Tự động tạo tài khoản khách hàng vãng lai
 router.post("/guest", userController.createGuestUserHandler);
 
+// Hiển thị danh sách kỹ thuật viên của hệ thống cho khách hàng xem
+router.get("/techs", userController.allTechsHandler);
+
 module.exports = router;

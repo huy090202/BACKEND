@@ -42,7 +42,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         status: {
             type: DataTypes.ENUM(...Object.values(MAINTENANCE_STATUS_CODE)),
-            defaultValue: MAINTENANCE_STATUS_CODE['RECEIVING'],
+            defaultValue: MAINTENANCE_STATUS_CODE['INSPECTING'],
             allowNull: false,
         },
         maintenance_date: {
