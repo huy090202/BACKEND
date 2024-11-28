@@ -129,7 +129,6 @@ const createAppointmentHandler = async (req, res) => {
             data: appointment
         });
     } catch (err) {
-        console.log("Có lỗi xảy ra khi tạo lịch hẹn: ", err.message);
         return res.status(500).json({
             status: false,
             message: "Có lỗi xảy ra khi tạo lịch hẹn",
@@ -185,27 +184,35 @@ const updateAppointmentByIdHandler = async (req, res) => {
         });
     }
 
-    const appointment = await appointmentService.updateAppointmentById(id, {
-        appointment_date, // YYYY-MM-DD
-        appointment_time, // HH:MM:SS
-        motor_id,
-        content,
-        status
-    });
+    try {
+        const appointment = await appointmentService.updateAppointmentById(id, {
+            appointment_date, // YYYY-MM-DD
+            appointment_time, // HH:MM:SS
+            motor_id,
+            content,
+            status
+        });
 
-    if (!appointment) {
+        if (!appointment) {
+            return res.status(500).json({
+                status: false,
+                message: "Lỗi khi cập nhật lịch hẹn",
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: "Lịch hẹn đã được cập nhật thành công",
+            data: appointment
+        });
+    } catch (err) {
         return res.status(500).json({
             status: false,
-            message: "Lỗi khi cập nhật lịch hẹn",
+            message: "Có lỗi xảy ra khi cập nhật lịch hẹn",
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: "Lịch hẹn đã được cập nhật thành công",
-        data: appointment
-    });
 };
 
 // Xóa lịch hẹn đã hoàn tất bảo dưỡng theo id
@@ -236,20 +243,28 @@ const deleteAppointmentByIdHandler = async (req, res) => {
         });
     };
 
-    const appointmentImage = await appointmentService.deleteAppointmentById(id);
-    if (!appointmentImage) {
+    try {
+        const appointmentImage = await appointmentService.deleteAppointmentById(id);
+        if (!appointmentImage) {
+            return res.status(500).json({
+                status: false,
+                message: `Lịch hẹn '${id}' không thể xoá`,
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: "Lịch hẹn đã được xoá thành công",
+            data: {}
+        });
+    } catch (err) {
         return res.status(500).json({
             status: false,
-            message: `Lịch hẹn '${id}' không thể xoá`,
+            message: "Có lỗi xảy ra khi xoá lịch hẹn",
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: "Lịch hẹn đã được xoá thành công",
-        data: {}
-    });
 };
 
 // Thay đổi trạng thái lịch hẹn
@@ -299,13 +314,20 @@ const changeAppointmentStatusHandler = async (req, res) => {
                 message: "Trạng thái không hợp lệ",
             });
     }
-
-    await appointmentService.changeAppointmentStatus(id, { status: statusVar });
-    return res.status(200).json({
-        status: true,
-        message: `Lịch hẹn đã được ${statusVar.toLowerCase()}`,
-        data: {}
-    });
+    try {
+        await appointmentService.changeAppointmentStatus(id, { status: statusVar });
+        return res.status(200).json({
+            status: true,
+            message: `Lịch hẹn đã được ${statusVar.toLowerCase()}`,
+            data: {}
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Có lỗi xảy ra khi thay đổi trạng thái lịch hẹn",
+            data: {}
+        });
+    }
 };
 
 // Lấy thông tin lịch hẹn theo id
@@ -319,18 +341,26 @@ const getAppointmentByIdHandler = async (req, res) => {
         });
     }
 
-    const appointment = await appointmentService.findAppointmentById(id);
-    if (!appointment) {
-        return res.status(404).json({
+    try {
+        const appointment = await appointmentService.findAppointmentById(id);
+        if (!appointment) {
+            return res.status(404).json({
+                status: false,
+                message: `Lịch hẹn '${id}' không tồn tại`,
+            })
+        }
+        return res.status(200).json({
+            status: true,
+            message: "Lấy thông tin lịch hẹn thành công",
+            data: appointment
+        });
+    } catch (err) {
+        return res.status(500).json({
             status: false,
-            message: `Lịch hẹn '${id}' không tồn tại`,
-        })
+            message: "Có lỗi xảy ra khi lấy thông tin lịch hẹn",
+            data: {}
+        });
     }
-    return res.status(200).json({
-        status: true,
-        message: "Lấy thông tin lịch hẹn thành công",
-        data: appointment
-    });
 };
 
 // Admin - Lấy tất cả lịch hẹn
@@ -338,16 +368,24 @@ const getAllAppointmentsHandler = async (req, res) => {
     const { page = 1, limit = 5 } = req.query;
     const offset = (page - 1) * parseInt(limit);
 
-    let appointments = [];
-    appointments = await appointmentService.findAppointments({ offset, limit: parseInt(limit) });
-    return res.status(200).json({
-        status: true,
-        message: "Lấy tất cả lịch hẹn thành công",
-        data: appointments.rows,
-        total: appointments.count,
-        page: parseInt(page),
-        limit: parseInt(limit)
-    });
+    try {
+        let appointments = [];
+        appointments = await appointmentService.findAppointments({ offset, limit: parseInt(limit) });
+        return res.status(200).json({
+            status: true,
+            message: "Lấy tất cả lịch hẹn thành công",
+            data: appointments.rows,
+            total: appointments.count,
+            page: parseInt(page),
+            limit: parseInt(limit)
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Có lỗi xảy ra khi lấy tất cả lịch hẹn",
+            data: {}
+        });
+    }
 };
 
 // Public - Lấy tất cả lịch hẹn của người dùng
@@ -356,16 +394,24 @@ const allAppointmentsHandler = async (req, res) => {
     const { page = 1, limit = 5 } = req.query;
     const offset = (page - 1) * parseInt(limit);
 
-    let appointments = [];
-    appointments = await appointmentService.findAppointmentsPublic({ id, offset, limit: parseInt(limit) });
-    return res.status(200).json({
-        status: true,
-        message: "Lấy tất cả lịch hẹn thành công",
-        data: appointments.rows,
-        total: appointments.count,
-        page: parseInt(page),
-        limit: parseInt(limit)
-    });
+    try {
+        let appointments = [];
+        appointments = await appointmentService.findAppointmentsPublic({ id, offset, limit: parseInt(limit) });
+        return res.status(200).json({
+            status: true,
+            message: "Lấy tất cả lịch hẹn thành công",
+            data: appointments.rows,
+            total: appointments.count,
+            page: parseInt(page),
+            limit: parseInt(limit)
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Có lỗi xảy ra khi lấy tất cả lịch hẹn",
+            data: {}
+        });
+    }
 };
 
 // Kiểm tra ngày và thời gian hẹn bảo dưỡng
@@ -393,7 +439,6 @@ const validateAppointmentDateAndTime = async (appointment_date, appointment_time
             return "Thời gian bắt đầu bảo dưỡng phải lớn hơn thời gian hiện tại";
         }
     }
-
 
     return null;
 };

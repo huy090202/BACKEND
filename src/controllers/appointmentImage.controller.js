@@ -39,27 +39,35 @@ const createAppointmentImageHandler = async (req, res) => {
         }
     }
 
-    const appointmentImages = await Promise.all(
-        imageUrls.map((url) => appointmentImageService.createAppointmentImage({
-            image_url: url,
-            description,
-            appointment_id
-        }))
-    )
+    try {
+        const appointmentImages = await Promise.all(
+            imageUrls.map((url) => appointmentImageService.createAppointmentImage({
+                image_url: url,
+                description,
+                appointment_id
+            }))
+        )
 
-    if (!appointmentImages || appointmentImages.length === 0) {
+        if (!appointmentImages || appointmentImages.length === 0) {
+            return res.status(500).json({
+                status: false,
+                message: "Lỗi khi tạo ảnh tình trạng xe",
+                data: {}
+            });
+        }
+
+        return res.status(201).json({
+            status: true,
+            message: "Ảnh tình trạng xe đã được tạo thành công",
+            data: appointmentImages
+        });
+    } catch (err) {
         return res.status(500).json({
             status: false,
             message: "Lỗi khi tạo ảnh tình trạng xe",
             data: {}
         });
     }
-
-    return res.status(201).json({
-        status: true,
-        message: "Ảnh tình trạng xe đã được tạo thành công",
-        data: appointmentImages
-    });
 };
 
 // Cập nhật ảnh tình trạng xe cho lịch hẹn theo id
@@ -87,7 +95,6 @@ const updateAppointmentImageByIdHandler = async (req, res) => {
             const fileName = existedAppointmentImage.image_url.split('/').pop();
             await minioClient.removeObject(process.env.MINIO_BUCKET_NAME, fileName);
         } catch (err) {
-            console.error('Lỗi khi xóa ảnh cũ:', err);
             return res.status(500).json({
                 status: false,
                 message: "Ảnh tình trạng xe không tồn tại",
@@ -109,26 +116,34 @@ const updateAppointmentImageByIdHandler = async (req, res) => {
         }
     }
 
-    const { description, appointment_id } = req.body;
-    const appointmentImage = await appointmentImageService.updateAppointmentImage(id, {
-        ...(imageUrl && { image_url: imageUrl }),
-        description,
-        appointment_id
-    });
+    try {
+        const { description, appointment_id } = req.body;
+        const appointmentImage = await appointmentImageService.updateAppointmentImage(id, {
+            ...(imageUrl && { image_url: imageUrl }),
+            description,
+            appointment_id
+        });
 
-    if (!appointmentImage) {
+        if (!appointmentImage) {
+            return res.status(500).json({
+                status: false,
+                message: "Lỗi khi cập nhật ảnh tình trạng xe",
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: "Ảnh tình trạng xe đã được cập nhật thành công",
+            data: appointmentImage
+        });
+    } catch (err) {
         return res.status(500).json({
             status: false,
             message: "Lỗi khi cập nhật ảnh tình trạng xe",
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: "Ảnh tình trạng xe đã được cập nhật thành công",
-        data: appointmentImage
-    });
 };
 
 // Xóa ảnh tình trạng xe cho lịch hẹn theo id
@@ -154,7 +169,6 @@ const deleteAppointmentImageByIdHandler = async (req, res) => {
         const fileName = existedAppointmentImage.image_url.split('/').pop();
         await minioClient.removeObject(process.env.MINIO_BUCKET_NAME, fileName);
     } catch (err) {
-        console.error('Lỗi khi xóa ảnh tình trạng xe từ MinIO:', err);
         return res.status(500).json({
             status: false,
             message: "Lỗi khi xóa ảnh tình trạng xe từ MinIO",
@@ -162,20 +176,28 @@ const deleteAppointmentImageByIdHandler = async (req, res) => {
         });
     }
 
-    const appointmentImage = await appointmentImageService.deleteAppointmentImageById(id);
-    if (!appointmentImage) {
+    try {
+        const appointmentImage = await appointmentImageService.deleteAppointmentImageById(id);
+        if (!appointmentImage) {
+            return res.status(500).json({
+                status: false,
+                message: `Ảnh tình trạng xe '${id}' không thể xoá`,
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: "Ảnh tình trạng xe đã được xóa thành công",
+            data: {}
+        });
+    } catch (err) {
         return res.status(500).json({
             status: false,
-            message: `Ảnh tình trạng xe '${id}' không thể xoá`,
+            message: "Lỗi khi xóa ảnh tình trạng xe",
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: "Ảnh tình trạng xe đã được xóa thành công",
-        data: {}
-    });
 };
 
 // Lấy ảnh tình trạng xe cho lịch hẹn theo id
@@ -189,19 +211,27 @@ const getAppointmentImageByIdHandler = async (req, res) => {
         })
     }
 
-    const appointmentImage = await appointmentImageService.findAppointmentImageById(id);
-    if (!appointmentImage) {
-        return res.status(404).json({
-            status: false,
-            message: `Ảnh tình trạng xe '${id}' không tồn tại`,
-        })
-    }
+    try {
+        const appointmentImage = await appointmentImageService.findAppointmentImageById(id);
+        if (!appointmentImage) {
+            return res.status(404).json({
+                status: false,
+                message: `Ảnh tình trạng xe '${id}' không tồn tại`,
+            })
+        }
 
-    return res.status(200).json({
-        status: true,
-        message: "Lấy ảnh tình trạng xe thành công",
-        data: appointmentImage
-    });
+        return res.status(200).json({
+            status: true,
+            message: "Lấy ảnh tình trạng xe thành công",
+            data: appointmentImage
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Lỗi khi lấy ảnh tình trạng xe",
+            data: {}
+        });
+    }
 };
 
 // Lấy tất cả ảnh tình trạng xe cho lịch hẹn
@@ -215,14 +245,22 @@ const getAllAppointmentImagesHandler = async (req, res) => {
         })
     }
 
-    let appointmentImages = [];
-    appointmentImages = await appointmentImageService.findAppointmentImages(appointment_id);
-    return res.status(200).json({
-        status: true,
-        message: "Lấy tất cả ảnh tình trạng xe thành công",
-        data: appointmentImages.rows,
-        total: appointmentImages.count
-    });
+    try {
+        let appointmentImages = [];
+        appointmentImages = await appointmentImageService.findAppointmentImages(appointment_id);
+        return res.status(200).json({
+            status: true,
+            message: "Lấy tất cả ảnh tình trạng xe thành công",
+            data: appointmentImages.rows,
+            total: appointmentImages.count
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Lỗi khi lấy tất cả ảnh tình trạng xe",
+            data: {}
+        });
+    }
 };
 
 module.exports = {

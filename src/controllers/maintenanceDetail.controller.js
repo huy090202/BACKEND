@@ -118,20 +118,28 @@ const updateMaintenanceDetailByIdHandler = async (req, res) => {
         part_id
     };
 
-    const maintenanceDetail = await maintenanceDetailService.updateMaintenanceDetailById(id, data);
-    if (!maintenanceDetail) {
-        return res.status(400).json({
+    try {
+        const maintenanceDetail = await maintenanceDetailService.updateMaintenanceDetailById(id, data);
+        if (!maintenanceDetail) {
+            return res.status(400).json({
+                status: false,
+                message: 'Không thể cập nhật chi tiết bảo d룡ng',
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: 'Cập nhật chi tiết bảo dưỡng thành công',
+            data: maintenanceDetail
+        });
+    } catch (error) {
+        return res.status(500).json({
             status: false,
-            message: 'Không thể cập nhật chi tiết bảo d룡ng',
+            message: 'Lỗi khi cập nhật chi tiết bảo dưỡng',
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: 'Cập nhật chi tiết bảo dưỡng thành công',
-        data: maintenanceDetail
-    });
 };
 
 // Xóa chi tiết bảo dưỡng theo id
@@ -173,20 +181,28 @@ const getMaintenanceDetailByIdHandler = async (req, res) => {
         });
     }
 
-    const maintenanceDetail = await maintenanceDetailService.findMaintenanceDetailById(id);
-    if (!maintenanceDetail) {
-        return res.status(404).json({
+    try {
+        const maintenanceDetail = await maintenanceDetailService.findMaintenanceDetailById(id);
+        if (!maintenanceDetail) {
+            return res.status(404).json({
+                status: false,
+                message: 'Chi tiết bảo dưỡng không tồn tại',
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: 'Lấy chi tiết bảo dưỡng thành công',
+            data: maintenanceDetail
+        });
+    } catch (error) {
+        return res.status(500).json({
             status: false,
-            message: 'Chi tiết bảo dưỡng không tồn tại',
+            message: 'Lỗi khi lấy chi tiết bảo dưỡng',
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: 'Lấy chi tiết bảo dưỡng thành công',
-        data: maintenanceDetail
-    });
 };
 
 // Lấy tất cả chi tiết bảo dưỡng của 1 đơn bảo dưỡng
@@ -194,17 +210,25 @@ const getAllMaintenanceDetailsHandler = async (req, res) => {
     const { maintenance_id, page = 1, limit = 5 } = req.query;
     const offset = (page - 1) * parseInt(limit);
 
-    let maintenanceDetails = [];
-    maintenanceDetails = await maintenanceDetailService.findMaintenanceDetails({ maintenance_id, offset, limit });
+    try {
+        let maintenanceDetails = [];
+        maintenanceDetails = await maintenanceDetailService.findMaintenanceDetails({ maintenance_id, offset, limit });
 
-    return res.status(200).json({
-        status: true,
-        message: 'Lấy tất cả chi tiết bảo dưỡng của 1 đơn bảo dưỡng thành công',
-        data: maintenanceDetails.rows,
-        total: maintenanceDetails.count,
-        page: parseInt(page),
-        limit: parseInt(limit)
-    });
+        return res.status(200).json({
+            status: true,
+            message: 'Lấy tất cả chi tiết bảo dưỡng của 1 đơn bảo dưỡng thành công',
+            data: maintenanceDetails.rows,
+            total: maintenanceDetails.count,
+            page: parseInt(page),
+            limit: parseInt(limit)
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: 'Lỗi khi lấy tất cả chi tiết bảo dưỡng của 1 đơn bảo dưỡng',
+            data: {}
+        });
+    }
 };
 
 module.exports = {

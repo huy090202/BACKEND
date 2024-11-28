@@ -38,9 +38,14 @@ const findMotorcyclepartsById = async (id) => {
 };
 
 // Tìm tất cả phụ tùng
-const findMotorcycleparts = async ({ status, offset, limit }) => {
+const findMotorcycleparts = async ({ status, offset, limit }, categoryId) => {
+    const whereCondition = {
+        ...status,
+        ...(categoryId && { category_id: categoryId })
+    };
+
     const motorcycleparts = await db.MotorcycleParts.findAndCountAll({
-        where: status,
+        where: whereCondition,
         offset,
         limit,
         include: [

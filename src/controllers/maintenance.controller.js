@@ -83,7 +83,7 @@ const createMaintenanceHandler = async (req, res) => {
         });
     } catch (e) {
         console.error('Lỗi khi tạo đơn bảo dưỡng:', e);
-        return res.status(400).json({
+        return res.status(500).json({
             status: false,
             message: 'Không thể tạo đơn bảo dưỡng',
             data: {}
@@ -135,21 +135,29 @@ const updateMaintenanceByIdHandler = async (req, res) => {
         appointment_id: appointment_id || maintenance.appointment_id
     };
 
-    const updatedMaintenance = await maintenanceService.updateMaintenanceById(id, custom_maintenance);
+    try {
+        const updatedMaintenance = await maintenanceService.updateMaintenanceById(id, custom_maintenance);
 
-    if (!updatedMaintenance) {
-        return res.status(400).json({
+        if (!updatedMaintenance) {
+            return res.status(400).json({
+                status: false,
+                message: 'Không thể cập nhật đơn bảo dưỡng',
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: 'Đơn bảo dưỡng đã được cập nhật thành công',
+            data: updatedMaintenance
+        });
+    } catch (e) {
+        return res.status(500).json({
             status: false,
-            message: 'Không thể cập nhật đơn bảo dưỡng',
+            message: 'Lỗi khi cập nhật đơn bảo dưỡng',
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: 'Đơn bảo dưỡng đã được cập nhật thành công',
-        data: updatedMaintenance
-    });
 };
 
 // Cập nhật trạng thái đơn bảo dưỡng
@@ -172,36 +180,44 @@ const changeMaintenanceStatusHandler = async (req, res) => {
             data: {}
         });
     }
-    let maintenance;
-    if (status === MAINTENANCE_STATUS_CODE['COMPLETED']) {
-        maintenance = await maintenanceService.updateMaintenanceById(id, {
-            status: MAINTENANCE_STATUS_CODE['COMPLETED']
-        });
+    try {
+        let maintenance;
+        if (status === MAINTENANCE_STATUS_CODE['COMPLETED']) {
+            maintenance = await maintenanceService.updateMaintenanceById(id, {
+                status: MAINTENANCE_STATUS_CODE['COMPLETED']
+            });
 
-        if (maintenance && maintenance.appointment_id) {
-            const result = await appointmentService.changeAppointmentStatus(maintenance.appointment_id, {
-                status: APPOINTMENT_STATUS_CODE['COMPLETED']
+            if (maintenance && maintenance.appointment_id) {
+                const result = await appointmentService.changeAppointmentStatus(maintenance.appointment_id, {
+                    status: APPOINTMENT_STATUS_CODE['COMPLETED']
+                });
+            }
+        } else {
+            maintenance = await maintenanceService.updateMaintenanceById(id, {
+                status: status
             });
         }
-    } else {
-        maintenance = await maintenanceService.updateMaintenanceById(id, {
-            status: status
-        });
-    }
 
-    if (!maintenance) {
-        return res.status(404).json({
+        if (!maintenance) {
+            return res.status(404).json({
+                status: false,
+                message: 'Đơn bảo dưỡng không tồn tại',
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: `Trạng thái đơn bảo dưỡng đã được ${status}`,
+            data: maintenance
+        });
+    } catch (e) {
+        return res.status(500).json({
             status: false,
-            message: 'Đơn bảo dưỡng không tồn tại',
+            message: 'Lỗi khi cập nhật trạng thái đơn bảo dưỡng',
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: `Trạng thái đơn bảo dưỡng đã được ${status}`,
-        data: maintenance
-    });
 };
 
 // Xóa đơn bảo dưỡng theo id
@@ -223,7 +239,7 @@ const deleteMaintenanceByIdHandler = async (req, res) => {
         });
     } catch (e) {
         console.error('Lỗi khi xoá đơn bảo dưỡng:', e);
-        return res.status(400).json({
+        return res.status(500).json({
             status: false,
             message: 'Không thể xoá đơn bảo dưỡng',
             data: {}
@@ -242,20 +258,28 @@ const getMaintenanceByIdHandler = async (req, res) => {
         });
     }
 
-    const maintenance = await maintenanceService.findMaintenanceById(id);
-    if (!maintenance) {
-        return res.status(404).json({
+    try {
+        const maintenance = await maintenanceService.findMaintenanceById(id);
+        if (!maintenance) {
+            return res.status(404).json({
+                status: false,
+                message: 'Đơn bảo dưỡng không tồn tại',
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: 'Lấy đơn bảo dưỡng thành công',
+            data: maintenance
+        });
+    } catch (e) {
+        return res.status(500).json({
             status: false,
-            message: 'Đơn bảo dưỡng không tồn tại',
+            message: 'Lỗi khi lấy đơn bảo dưỡng',
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: 'Lấy đơn bảo dưỡng thành công',
-        data: maintenance
-    });
 };
 
 // Tìm tất cả đơn bảo dưỡng của hệ thống
@@ -263,41 +287,57 @@ const getAllMaintenancesHandler = async (req, res) => {
     const { page = 1, limit = 5 } = req.query;
     const offset = (page - 1) * parseInt(limit);
 
-    let maintenances = [];
-    maintenances = await maintenanceService.findAllMaintenances({ offset, limit: parseInt(limit) });
-    return res.status(200).json({
-        status: true,
-        message: 'Lấy tất cả đơn bảo dưỡng thành công',
-        data: maintenances.rows.map((item) => ({
-            id: item.id,
-            status: item.status,
-            maintenance_date: item.maintenance_date,
-            notes_before: item.notes_before,
-            notes_after: item.notes_after,
-            wear_percentage_before: item.wear_percentage_before,
-            wear_percentage_after: item.wear_percentage_after,
-            user_id: item.user_id,
-            motor_id: item.motor_id,
-            appointment_id: item.appointment_id,
-        })),
-        total: maintenances.count,
-        page: parseInt(page),
-        limit: parseInt(limit)
-    });
+    try {
+        let maintenances = [];
+        maintenances = await maintenanceService.findAllMaintenances({ offset, limit: parseInt(limit) });
+        return res.status(200).json({
+            status: true,
+            message: 'Lấy tất cả đơn bảo dưỡng thành công',
+            data: maintenances.rows.map((item) => ({
+                id: item.id,
+                status: item.status,
+                maintenance_date: item.maintenance_date,
+                notes_before: item.notes_before,
+                notes_after: item.notes_after,
+                wear_percentage_before: item.wear_percentage_before,
+                wear_percentage_after: item.wear_percentage_after,
+                user_id: item.user_id,
+                motor_id: item.motor_id,
+                appointment_id: item.appointment_id,
+            })),
+            total: maintenances.count,
+            page: parseInt(page),
+            limit: parseInt(limit)
+        });
+    } catch (e) {
+        return res.status(500).json({
+            status: false,
+            message: 'Lỗi khi lấy tất cả đơn bảo dưỡng',
+            data: {}
+        });
+    }
 };
 
 // Tìm tất cả đơn bảo dưỡng của kỹ thuật viên phụ trách
 const getAllMaintenancesByTechHandler = async (req, res) => {
     const { id } = req.user;
 
-    let maintenances = [];
-    maintenances = await maintenanceService.findMaintenancesByTechId(id);
-    return res.status(200).json({
-        status: true,
-        message: 'Lấy tất cả đơn bảo dưỡng của kỹ thuật viên phụ trách',
-        data: maintenances.rows,
-        total: maintenances.count,
-    });
+    try {
+        let maintenances = [];
+        maintenances = await maintenanceService.findMaintenancesByTechId(id);
+        return res.status(200).json({
+            status: true,
+            message: 'Lấy tất cả đơn bảo dưỡng của kỹ thuật viên phụ trách',
+            data: maintenances.rows,
+            total: maintenances.count,
+        });
+    } catch (e) {
+        return res.status(500).json({
+            status: false,
+            message: 'Lỗi khi lấy tất cả đơn bảo dưỡng của kỹ thuật viên phụ trách',
+            data: {}
+        });
+    }
 }
 
 // Tìm tất cả đơn bảo dưỡng của người dùng
@@ -308,36 +348,52 @@ const allMaintenancesHandler = async (req, res) => {
     const { page = 1, limit = 5 } = req.query;
     const offset = (page - 1) * parseInt(limit);
 
-    let maintenances = [];
-    maintenances = await appointmentService.findMaintenancesByUserIdWithAppointment({
-        id,
-        offset,
-        limit: parseInt(limit)
-    });
-    return res.status(200).json({
-        status: true,
-        message: 'Lấy tất cả đơn bảo dưỡng thành công',
-        data: maintenances.data,
-        total: maintenances.count,
-        page: parseInt(page),
-        limit: parseInt(limit)
-    });
+    try {
+        let maintenances = [];
+        maintenances = await appointmentService.findMaintenancesByUserIdWithAppointment({
+            id,
+            offset,
+            limit: parseInt(limit)
+        });
+        return res.status(200).json({
+            status: true,
+            message: 'Lấy tất cả đơn bảo dưỡng thành công',
+            data: maintenances.data,
+            total: maintenances.count,
+            page: parseInt(page),
+            limit: parseInt(limit)
+        });
+    } catch (e) {
+        return res.status(500).json({
+            status: false,
+            message: 'Lỗi khi lấy tất cả đơn bảo dưỡng',
+            data: {}
+        });
+    }
 };
 
 // Lấy lịch sử bảo dưỡng của người dùng
 const allMaintenancesHistoryHandler = async (req, res) => {
     const { user_id } = req.params;
 
-    let maintenances = [];
-    maintenances = await appointmentService.findMaintenanceHistoryByUserIdWithAppointment({
-        id: user_id,
-    });
-    return res.status(200).json({
-        status: true,
-        message: 'Lấy tất cả đơn bảo dưỡng thành công',
-        data: maintenances.data,
-        total: maintenances.count,
-    });
+    try {
+        let maintenances = [];
+        maintenances = await appointmentService.findMaintenanceHistoryByUserIdWithAppointment({
+            id: user_id,
+        });
+        return res.status(200).json({
+            status: true,
+            message: 'Lấy lịch sử bảo dưỡng của người dùng thành công',
+            data: maintenances.data,
+            total: maintenances.count,
+        });
+    } catch (e) {
+        return res.status(500).json({
+            status: false,
+            message: 'Lỗi khi lấy lịch sử bảo dưỡng của người dùng',
+            data: {}
+        });
+    }
 };
 
 module.exports = {

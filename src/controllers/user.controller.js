@@ -59,12 +59,20 @@ const createUserHandler = async (req, res) => {
         })
     }
 
-    const newUser = await userServices.createUser({ firstName, lastName, email, phoneNumber, password, role: ROLE_CODE['USER'] });
-    return res.status(201).json({
-        status: newUser ? true : false,
-        message: newUser ? "Tài khoản được đăng ký thành công." : "Đã xảy ra lỗi, vui lòng thử lại!",
-        data: {}
-    })
+    try {
+        const newUser = await userServices.createUser({ firstName, lastName, email, phoneNumber, password, role: ROLE_CODE['USER'] });
+        return res.status(201).json({
+            status: newUser ? true : false,
+            message: newUser ? "Tài khoản được đăng ký thành công." : "Đã xảy ra lỗi, vui lòng thử lại!",
+            data: {}
+        })
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Lỗi khi tạo tài khoản",
+            data: {}
+        });
+    }
 };
 
 // Tự động tạo tài khoản cho khách vãng lai
@@ -113,13 +121,21 @@ const createGuestUserHandler = async (req, res) => {
 
     const password = generatePassword(10);
 
-    const newUser = await userServices.createUser({ firstName, lastName, email, phoneNumber, password, role: ROLE_CODE['USER'] });
-    await emailService.sendEmailCreateUser(email, password);
-    return res.status(201).json({
-        status: newUser ? true : false,
-        message: newUser ? "Tài khoản được đăng ký thành công." : "Đã xảy ra lỗi, vui lòng thử lại!",
-        data: newUser
-    })
+    try {
+        const newUser = await userServices.createUser({ firstName, lastName, email, phoneNumber, password, role: ROLE_CODE['USER'] });
+        await emailService.sendEmailCreateUser(email, password);
+        return res.status(201).json({
+            status: newUser ? true : false,
+            message: newUser ? "Tài khoản được đăng ký thành công." : "Đã xảy ra lỗi, vui lòng thử lại!",
+            data: newUser
+        })
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Lỗi khi tạo tài khoản",
+            data: {}
+        });
+    }
 };
 
 // Đăng nhập
@@ -259,28 +275,36 @@ const updateUserHandler = async (req, res) => {
         }
     }
 
-    const user = await userServices.updateUser(id, {
-        ...(avatarUrl && { avatar: avatarUrl }),
-        firstName,
-        lastName,
-        phoneNumber,
-        gender,
-        address
-    });
+    try {
+        const user = await userServices.updateUser(id, {
+            ...(avatarUrl && { avatar: avatarUrl }),
+            firstName,
+            lastName,
+            phoneNumber,
+            gender,
+            address
+        });
 
-    if (!user) {
-        return res.status(400).json({
+        if (!user) {
+            return res.status(400).json({
+                status: false,
+                message: "Cập nhật thông tin không thành công",
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: "Thông tin của bạn đã được cập nhật",
+            data: user
+        })
+    } catch (err) {
+        return res.status(500).json({
             status: false,
-            message: "Cập nhật thông tin không thành công",
+            message: "Lỗi khi cập nhật thông tin",
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: "Thông tin của bạn đã được cập nhật",
-        data: user
-    })
 };
 
 // Đổi mật khẩu
@@ -311,30 +335,47 @@ const changePasswordHandler = async (req, res) => {
         })
     }
 
-    const result = await userServices.changePassword({ id, currentPassword, newPassword });
-    return res.status(result.statusCode).json({
-        status: result.status,
-        message: result.message,
-        data: {}
-    });
+    try {
+        const result = await userServices.changePassword({ id, currentPassword, newPassword });
+        return res.status(result.statusCode).json({
+            status: result.status,
+            message: result.message,
+            data: {}
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Lỗi khi cập nhật mật khẩu",
+            data: {}
+        });
+    }
 };
 
 // Lấy thông tin người dùng
 const getUserProfileHandler = async (req, res) => {
     const { id } = req.user;
-    const user = await userServices.getUserProfile(id);
-    if (!user) {
-        return res.status(400).json({
+
+    try {
+        const user = await userServices.getUserProfile(id);
+        if (!user) {
+            return res.status(400).json({
+                status: false,
+                message: "Không tìm thấy người dùng",
+                data: {}
+            });
+        }
+        return res.status(200).json({
+            status: true,
+            message: "Lây thông tin người dùng thành công",
+            data: user
+        });
+    } catch (err) {
+        return res.status(500).json({
             status: false,
-            message: "Không tìm thấy người dùng",
+            message: "Lỗi khi lấy dữ liệu",
             data: {}
         });
     }
-    return res.status(200).json({
-        status: true,
-        message: "Lây thông tin người dùng thành công",
-        data: user
-    });
 };
 
 // Chi tiết người dùng
@@ -348,20 +389,28 @@ const getUserByIdHandler = async (req, res) => {
         });
     }
 
-    const user = await userServices.getUserProfile(id);
-    if (!user) {
-        return res.status(400).json({
+    try {
+        const user = await userServices.getUserProfile(id);
+        if (!user) {
+            return res.status(400).json({
+                status: false,
+                message: "Không tìm thấy người dùng",
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: "Lây thông tin người dùng thành công",
+            data: user
+        });
+    } catch (err) {
+        return res.status(500).json({
             status: false,
-            message: "Không tìm thấy người dùng",
+            message: "Lỗi khi lấy dữ liệu",
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: "Lây thông tin người dùng thành công",
-        data: user
-    });
 };
 
 // Tạo một nhân viên mới
@@ -415,25 +464,42 @@ const createStaffHandler = async (req, res) => {
     if (role === 'Thu ngân') controllerRole = 'Thu ngân';
     if (role === 'Quản trị viên') controllerRole = 'Quản trị viên';
 
-    const newStaff = await userServices.createStaff({ firstName, lastName, email, phoneNumber, password, role: controllerRole });
-    return res.status(201).json({
-        status: newStaff ? true : false,
-        message: newStaff ? "Tài khoản nhân viên được tạo thành công." : "Đã xảy ra lỗi, vui lòng thử lại!",
-        data: newStaff
-    })
+    try {
+        const newStaff = await userServices.createStaff({ firstName, lastName, email, phoneNumber, password, role: controllerRole });
+        return res.status(201).json({
+            status: newStaff ? true : false,
+            message: newStaff ? "Tài khoản nhân viên được tạo thành công." : "Đã xảy ra lỗi, vui lòng thử lại!",
+            data: newStaff
+        })
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Lỗi khi tạo nhân viên",
+            data: {}
+        });
+    }
 }
 
 // Cập nhật trạng thái người dùng
 const updateUserStatusHandler = async (req, res) => {
     const { id } = req.params;
     const { active } = req.body;
-    let activeVar = true;
-    if (active === 'false' || active === false) activeVar = false;
-    await userServices.updateUser(id, { active: activeVar });
-    return res.status(200).json({
-        status: true,
-        message: activeVar ? "Tài khoản đã được kích hoạt." : "Tài khoản đã bị vô hiệu hóa.",
-    })
+
+    try {
+        let activeVar = true;
+        if (active === 'false' || active === false) activeVar = false;
+        await userServices.updateUser(id, { active: activeVar });
+        return res.status(200).json({
+            status: true,
+            message: activeVar ? "Tài khoản đã được kích hoạt." : "Tài khoản đã bị vô hiệu hóa.",
+        })
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Lỗi khi cập nhật trạng thái người dùng",
+            data: {}
+        });
+    }
 };
 
 // Lấy tất cả người dùng
@@ -441,21 +507,29 @@ const getAllUsersHandler = async (req, res) => {
     const { active, page = 1, limit = 5 } = req.query;
     const offset = (page - 1) * parseInt(limit);
 
-    let users = [];
-    if (active === 'true' || active === true)
-        users = await userServices.findUsers({ query: { role: ROLE_CODE.USER }, active: { active: true }, offset, limit: parseInt(limit) });
-    else if (active === 'false' || active === false)
-        users = await userServices.findUsers({ query: { role: ROLE_CODE.USER }, active: { active: false }, offset, limit: parseInt(limit) });
-    else users = await userServices.findUsers({ query: { role: ROLE_CODE.USER }, active: {}, offset, limit: parseInt(limit) });
+    try {
+        let users = [];
+        if (active === 'true' || active === true)
+            users = await userServices.findUsers({ query: { role: ROLE_CODE.USER }, active: { active: true }, offset, limit: parseInt(limit) });
+        else if (active === 'false' || active === false)
+            users = await userServices.findUsers({ query: { role: ROLE_CODE.USER }, active: { active: false }, offset, limit: parseInt(limit) });
+        else users = await userServices.findUsers({ query: { role: ROLE_CODE.USER }, active: {}, offset, limit: parseInt(limit) });
 
-    return res.status(200).json({
-        status: true,
-        message: "Lấy tất cả người dùng thành công",
-        data: users.users,
-        total: users.total,
-        page: parseInt(page),
-        limit: parseInt(limit)
-    });
+        return res.status(200).json({
+            status: true,
+            message: "Lấy tất cả người dùng thành công",
+            data: users.users,
+            total: users.total,
+            page: parseInt(page),
+            limit: parseInt(limit)
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Lỗi khi lấy dữ liệu",
+            data: {}
+        });
+    }
 };
 
 // Lấy tất cả nhân viên
@@ -463,21 +537,29 @@ const getAllStaffsHandler = async (req, res) => {
     const { active, page = 1, limit = 5 } = req.query;
     const offset = (page - 1) * parseInt(limit);
 
-    let staffs = [];
-    if (active === 'true' || active === true)
-        staffs = await userServices.findUsers({ query: { role: ROLE_CODE.STAFF }, active: { active: true }, offset, limit: parseInt(limit) });
-    else if (active === 'false' || active === false)
-        staffs = await userServices.findUsers({ query: { role: ROLE_CODE.STAFF }, active: { active: false }, offset, limit: parseInt(limit) });
-    else staffs = await userServices.findUsers({ query: { role: ROLE_CODE.STAFF }, active: {}, offset, limit: parseInt(limit) });
+    try {
+        let staffs = [];
+        if (active === 'true' || active === true)
+            staffs = await userServices.findUsers({ query: { role: ROLE_CODE.STAFF }, active: { active: true }, offset, limit: parseInt(limit) });
+        else if (active === 'false' || active === false)
+            staffs = await userServices.findUsers({ query: { role: ROLE_CODE.STAFF }, active: { active: false }, offset, limit: parseInt(limit) });
+        else staffs = await userServices.findUsers({ query: { role: ROLE_CODE.STAFF }, active: {}, offset, limit: parseInt(limit) });
 
-    return res.status(200).json({
-        status: true,
-        message: "Lấy tất cả nhân viên thành công",
-        data: staffs.users,
-        total: staffs.total,
-        page: parseInt(page),
-        limit: parseInt(limit)
-    });
+        return res.status(200).json({
+            status: true,
+            message: "Lấy tất cả nhân viên thành công",
+            data: staffs.users,
+            total: staffs.total,
+            page: parseInt(page),
+            limit: parseInt(limit)
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Lỗi khi lấy dữ liệu",
+            data: {}
+        });
+    }
 };
 
 // Lấy tất cả kỹ thuật viên
@@ -485,21 +567,29 @@ const getAllTechsHandler = async (req, res) => {
     const { active, page = 1, limit = 5 } = req.query;
     const offset = (page - 1) * parseInt(limit);
 
-    let techs = [];
-    if (active === 'true' || active === true)
-        techs = await userServices.findUsers({ query: { role: ROLE_CODE.TECH }, active: { active: true }, offset, limit: parseInt(limit) });
-    else if (active === 'false' || active === false)
-        techs = await userServices.findUsers({ query: { role: ROLE_CODE.TECH }, active: { active: false }, offset, limit: parseInt(limit) });
-    else techs = await userServices.findUsers({ query: { role: ROLE_CODE.TECH }, active: {}, offset, limit: parseInt(limit) });
+    try {
+        let techs = [];
+        if (active === 'true' || active === true)
+            techs = await userServices.findUsers({ query: { role: ROLE_CODE.TECH }, active: { active: true }, offset, limit: parseInt(limit) });
+        else if (active === 'false' || active === false)
+            techs = await userServices.findUsers({ query: { role: ROLE_CODE.TECH }, active: { active: false }, offset, limit: parseInt(limit) });
+        else techs = await userServices.findUsers({ query: { role: ROLE_CODE.TECH }, active: {}, offset, limit: parseInt(limit) });
 
-    return res.status(200).json({
-        status: true,
-        message: "Lấy tất cả kỹ thuật viên thành công",
-        data: techs.users,
-        total: techs.total,
-        page: parseInt(page),
-        limit: parseInt(limit)
-    });
+        return res.status(200).json({
+            status: true,
+            message: "Lấy tất cả kỹ thuật viên thành công",
+            data: techs.users,
+            total: techs.total,
+            page: parseInt(page),
+            limit: parseInt(limit)
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Lỗi khi lấy dữ liệu",
+            data: {}
+        });
+    }
 };
 
 // Lấy tất cả nhân viên thu ngân
@@ -507,21 +597,29 @@ const getAllCashiersHandler = async (req, res) => {
     const { active, page = 1, limit = 5 } = req.query;
     const offset = (page - 1) * parseInt(limit);
 
-    let cashiers = [];
-    if (active === 'true' || active === true)
-        cashiers = await userServices.findUsers({ query: { role: ROLE_CODE.CASHIER }, active: { active: true }, offset, limit: parseInt(limit) });
-    else if (active === 'false' || active === false)
-        cashiers = await userServices.findUsers({ query: { role: ROLE_CODE.CASHIER }, active: { active: false }, offset, limit: parseInt(limit) });
-    else cashiers = await userServices.findUsers({ query: { role: ROLE_CODE.CASHIER }, active: {}, offset, limit: parseInt(limit) });
+    try {
+        let cashiers = [];
+        if (active === 'true' || active === true)
+            cashiers = await userServices.findUsers({ query: { role: ROLE_CODE.CASHIER }, active: { active: true }, offset, limit: parseInt(limit) });
+        else if (active === 'false' || active === false)
+            cashiers = await userServices.findUsers({ query: { role: ROLE_CODE.CASHIER }, active: { active: false }, offset, limit: parseInt(limit) });
+        else cashiers = await userServices.findUsers({ query: { role: ROLE_CODE.CASHIER }, active: {}, offset, limit: parseInt(limit) });
 
-    return res.status(200).json({
-        status: true,
-        message: "Lấy tất cả nhân viên thu ngân thành công",
-        data: cashiers.users,
-        total: cashiers.total,
-        page: parseInt(page),
-        limit: parseInt(limit)
-    });
+        return res.status(200).json({
+            status: true,
+            message: "Lấy tất cả nhân viên thu ngân thành công",
+            data: cashiers.users,
+            total: cashiers.total,
+            page: parseInt(page),
+            limit: parseInt(limit)
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Lỗi khi lấy dữ liệu",
+            data: {}
+        });
+    }
 };
 
 // Lấy tất cả admin
@@ -529,21 +627,29 @@ const getAllAdminsHandler = async (req, res) => {
     const { active, page = 1, limit = 5 } = req.query;
     const offset = (page - 1) * parseInt(limit);
 
-    let admins = [];
-    if (active === 'true' || active === true)
-        admins = await userServices.findUsers({ query: { role: ROLE_CODE.ADMIN }, active: { active: true }, offset, limit: parseInt(limit) });
-    else if (active === 'false' || active === false)
-        admins = await userServices.findUsers({ query: { role: ROLE_CODE.ADMIN }, active: { active: false }, offset, limit: parseInt(limit) });
-    else admins = await userServices.findUsers({ query: { role: ROLE_CODE.ADMIN }, active: {}, offset, limit: parseInt(limit) });
+    try {
+        let admins = [];
+        if (active === 'true' || active === true)
+            admins = await userServices.findUsers({ query: { role: ROLE_CODE.ADMIN }, active: { active: true }, offset, limit: parseInt(limit) });
+        else if (active === 'false' || active === false)
+            admins = await userServices.findUsers({ query: { role: ROLE_CODE.ADMIN }, active: { active: false }, offset, limit: parseInt(limit) });
+        else admins = await userServices.findUsers({ query: { role: ROLE_CODE.ADMIN }, active: {}, offset, limit: parseInt(limit) });
 
-    return res.status(200).json({
-        status: true,
-        message: "Lây tất cả admin thành công",
-        data: admins.users,
-        total: admins.total,
-        page: parseInt(page),
-        limit: parseInt(limit)
-    });
+        return res.status(200).json({
+            status: true,
+            message: "Lây tất cả admin thành công",
+            data: admins.users,
+            total: admins.total,
+            page: parseInt(page),
+            limit: parseInt(limit)
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Lỗi khi lấy dữ liệu",
+            data: {}
+        });
+    }
 };
 
 // Cập nhật token mới
@@ -558,24 +664,40 @@ const refreshTokenHandler = async (req, res) => {
         });
     }
 
-    const response = await verifyToken(refresh_token);
-    return res.status(200).json({
-        status: response.status,
-        message: response.message,
-        data: response.access_token
-    })
+    try {
+        const response = await verifyToken(refresh_token);
+        return res.status(200).json({
+            status: response.status,
+            message: response.message,
+            data: response.access_token
+        })
+    } catch (err) {
+        return res.status(401).json({
+            status: false,
+            message: "Token không hợp lệ",
+            data: {}
+        });
+    }
 }
 
 // Danh sách kỹ thuật viên - public
 const allTechsHandler = async (req, res) => {
-    let techs = [];
-    techs = await userServices.findUsers({ query: { role: ROLE_CODE.TECH }, active: { active: true } });
-    return res.status(200).json({
-        status: true,
-        message: "Lấy tất cả kỹ thuật viên thành công",
-        data: techs.users,
-        total: techs.total
-    });
+    try {
+        let techs = [];
+        techs = await userServices.findUsers({ query: { role: ROLE_CODE.TECH }, active: { active: true } });
+        return res.status(200).json({
+            status: true,
+            message: "Lấy tất cả kỹ thuật viên thành công",
+            data: techs.users,
+            total: techs.total
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Lỗi khi lấy dữ liệu",
+            data: {}
+        });
+    }
 }
 
 module.exports = {
