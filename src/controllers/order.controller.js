@@ -255,7 +255,7 @@ const paymentHandler = async (order, details) => {
         }));
 
         const embed_data = {
-            redirecturl: `${process.env.URL_REACT}/` || 'http://localhost:3000/',
+            redirecturl: `${process.env.URL_REACT}/menu` || 'http://localhost:3000/menu',
             order_code: order.order_code,
             name: order.name,
             email: order.email,
