@@ -18,7 +18,11 @@ const findCategories = async ({ status, offset, limit }) => {
     const categories = await db.Category.findAll({
         where: status,
         offset,
-        limit
+        limit,
+        order: [
+            ['createdAt', 'DESC'],
+            ['updatedAt', 'DESC']
+        ]
     });
 
     const totalCategories = await db.Category.count();

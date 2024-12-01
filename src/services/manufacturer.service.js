@@ -18,7 +18,8 @@ const findManufacturers = async ({ status, offset, limit }) => {
     const manufacturers = await db.Manufacturer.findAll({
         where: status,
         offset,
-        limit
+        limit,
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']],
     });
 
     const totalManufacturers = await db.Manufacturer.count();

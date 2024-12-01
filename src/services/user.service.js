@@ -136,7 +136,7 @@ const createStaff = async ({ firstName, lastName, email, phoneNumber, password, 
 // Lấy danh sách người dùng
 const findUsers = async ({ query, active, offset, limit }) => {
     try {
-        const { rows: users, count } = await db.User.findAndCountAll({ where: { ...query, ...active }, offset, limit });
+        const { rows: users, count } = await db.User.findAndCountAll({ where: { ...query, ...active }, offset, limit, order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']], });
 
         const formattedUsers = users.map(user => {
             return omit(user.toJSON(), ["password", "createdAt", "updatedAt"]);

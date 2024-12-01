@@ -52,7 +52,7 @@ const deleteMotorTempById = async (id) => {
 
 // Tìm tất cả xe tạm
 const findMotorTemps = async () => {
-    const motorTemps = await db.MotorTemp.findAndCountAll({});
+    const motorTemps = await db.MotorTemp.findAndCountAll({ order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']], });
     return motorTemps;
 };
 

@@ -66,7 +66,8 @@ const findMotors = async ({ userId, offset, limit }) => {
     const motors = await db.Motor.findAndCountAll({
         where: userId,
         offset,
-        limit
+        limit,
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']],
     });
     return motors;
 };

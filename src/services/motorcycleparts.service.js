@@ -33,7 +33,22 @@ const deleteMotorcyclepartsById = async (id) => {
 
 // Tìm một phụ tùng theo id
 const findMotorcyclepartsById = async (id) => {
-    const motorcycleparts = await db.MotorcycleParts.findByPk(id)
+    const motorcycleparts = await db.MotorcycleParts.findByPk(id, {
+        include: [
+            {
+                model: db.Stock,
+                as: 'stocks',
+                include: [
+                    {
+                        model: db.Warehouse,
+                        as: 'warehouse',
+                        attributes: ['id', 'name', 'address']
+                    }
+                ],
+                attributes: ['quantity']
+            }
+        ]
+    })
     return motorcycleparts;
 };
 

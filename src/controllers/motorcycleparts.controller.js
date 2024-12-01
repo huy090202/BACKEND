@@ -94,7 +94,7 @@ const createMotorcyclepartsHandler = async (req, res) => {
             active,
             manufacturer_id,
             category_id,
-            part_image: partImage
+            part_image: partImage,
         }, { transaction: t });
 
         if (!motorcycleparts) {
@@ -192,17 +192,19 @@ const updateMotorcyclepartsByIdHandler = async (req, res) => {
             });
         }
 
-        if (existedPart.part_image && existedPart.part_image !== "" && existedPart.part_image !== null) {
-            try {
-                const fileName = existedPart.part_image.split('/').pop();
-                await minioClient.removeObject(process.env.MINIO_BUCKET_NAME, fileName);
-            } catch (err) {
-                await t.rollback();
-                return res.status(500).json({
-                    status: false,
-                    message: "Lỗi khi xóa ảnh cũ",
-                    data: {}
-                });
+        if (req.body.part_image) {
+            if (existedPart.part_image && existedPart.part_image !== "" && existedPart.part_image !== null) {
+                try {
+                    const fileName = existedPart.part_image.split('/').pop();
+                    await minioClient.removeObject(process.env.MINIO_BUCKET_NAME, fileName);
+                } catch (err) {
+                    await t.rollback();
+                    return res.status(500).json({
+                        status: false,
+                        message: "Lỗi khi xóa ảnh cũ",
+                        data: {}
+                    });
+                }
             }
         }
 

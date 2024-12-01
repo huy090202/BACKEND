@@ -6,6 +6,7 @@ const ShortUniqueId = require('short-unique-id');
 const orderService = require('../services/order.service');
 const orderDetailService = require('../services/orderDetail.service');
 const partService = require('../services/motorcycleparts.service');
+const stockService = require('../services/stock.service');
 const emailService = require('../services/email.service');
 const zalopayConfig = require('../configs/zalopayConfig');
 const { EMAIL_VALIDATION, PHONE_NUMBER_VALIDATION, ORDER_CODE_VALIDATION } = require('../utils/validations');
@@ -119,7 +120,7 @@ const createOrderHandler = async (req, res) => {
                             });
                         }
 
-                        if (existedPart.quantity <= 0) {
+                        if (existedPart.stocks[0].quantity <= 0) {
                             await t.rollback();
                             return res.status(400).json({
                                 status: false,
@@ -128,7 +129,7 @@ const createOrderHandler = async (req, res) => {
                             });
                         }
 
-                        if (existedPart.quantity < quantity) {
+                        if (existedPart.stocks[0].quantity < quantity) {
                             await t.rollback();
                             return res.status(400).json({
                                 status: false,
@@ -137,7 +138,7 @@ const createOrderHandler = async (req, res) => {
                             });
                         }
 
-                        if (price !== existedPart.part_price || price <= 0) {
+                        if (price <= 0) {
                             await t.rollback();
                             return res.status(400).json({
                                 status: false,
@@ -165,8 +166,10 @@ const createOrderHandler = async (req, res) => {
                             transaction: t,
                         })
 
-                        await partService.updateMotorcycleparts(part_id, {
-                            quantity: existedPart.quantity - newOrderDetail.quantity
+                        await stockService.updateStock({
+                            part_id: part_id,
+                            quantity: existedPart.stocks[0].quantity - newOrderDetail.quantity,
+                            warehouse_id: existedPart.stocks[0].warehouse.id
                         }, {
                             transaction: t,
                         });
@@ -367,8 +370,10 @@ const callbackOrderHandler = async (req, res) => {
                         part_id: item.part_id
                     })
 
-                    await partService.updateMotorcycleparts(item.part_id, {
-                        quantity: existedPart.quantity - newOrderDetail.quantity
+                    await stockService.updateStock({
+                        part_id: item.part_id,
+                        quantity: existedPart.stocks[0].quantity - newOrderDetail.quantity,
+                        warehouse_id: existedPart.stocks[0].warehouse.id
                     });
                 } catch (error) {
                     console.log("Đã có lỗi xảy ra khi xác nhận thanh toán trực tuyến:", error.message);

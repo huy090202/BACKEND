@@ -37,7 +37,8 @@ const findMaintenances = async ({ userId, offset, limit }) => {
     const maintenances = await db.Maintenance.findAndCountAll({
         where: userId,
         offset,
-        limit
+        limit,
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']],
     });
     return maintenances;
 };
@@ -47,6 +48,7 @@ const findAllMaintenances = async ({ offset, limit }) => {
     const maintenances = await db.Maintenance.findAll({
         offset,
         limit,
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']],
     });
 
     const totalMaintenances = await db.Maintenance.count();
@@ -65,7 +67,8 @@ const findMaintenancesByTechId = async (id) => {
                 model: db.Motor,
                 as: 'motor'
             }
-        ]
+        ],
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']],
     });
     return maintenances;
 };

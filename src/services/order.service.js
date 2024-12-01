@@ -101,7 +101,8 @@ const findAllOrdersByUserId = async (id, { offset, limit }) => {
                 ],
                 attributes: ['id', 'quantity', 'price', 'part_id'],
             },
-        ]
+        ],
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']],
     });
 
     return {
@@ -154,7 +155,8 @@ const findAllOrders = async ({ offset, limit }) => {
                 ],
                 attributes: ['id', 'quantity', 'price', 'part_id'],
             },
-        ]
+        ],
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']],
     });
 
     return {
