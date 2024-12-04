@@ -5,6 +5,9 @@ const { config } = require('dotenv');
 const cors = require('cors');
 const routes = require('./routers');
 const connecttion = require('./configs/database');
+const { createBullBoard } = require('bull-board');
+const { BullAdapter } = require('bull-board/bullAdapter');
+const { orderQueue, appointmentQueue } = require('./utils/queues');
 
 config();
 
@@ -41,6 +44,13 @@ app.use(json({ limit: "50mb" }));
 app.use(urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 app.use(express.json());
+
+const { router } = createBullBoard([
+    new BullAdapter(orderQueue),
+    new BullAdapter(appointmentQueue),
+]);
+
+app.use('/admin/queues', router);
 
 // Cài đặt các route
 routes(app);

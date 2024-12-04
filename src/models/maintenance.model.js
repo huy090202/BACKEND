@@ -30,6 +30,12 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'appointment_id',
                 as: 'appointment',
             });
+
+            // 1 đơn bảo dưỡng tương ưng với 1 hóa đơn
+            Maintenance.hasOne(models.Invoice, {
+                foreignKey: 'maintenance_id',
+                as: 'invoice',
+            });
         }
     };
 
@@ -44,6 +50,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.ENUM(...Object.values(MAINTENANCE_STATUS_CODE)),
             defaultValue: MAINTENANCE_STATUS_CODE['INSPECTING'],
             allowNull: false,
+        },
+        maintenance_code: {
+            type: DataTypes.STRING(6),
+            allowNull: false,
+            unique: true
         },
         maintenance_date: {
             type: DataTypes.DATE,

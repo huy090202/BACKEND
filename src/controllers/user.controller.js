@@ -492,6 +492,7 @@ const updateUserStatusHandler = async (req, res) => {
         return res.status(200).json({
             status: true,
             message: activeVar ? "Tài khoản đã được kích hoạt." : "Tài khoản đã bị vô hiệu hóa.",
+            data: {}
         })
     } catch (err) {
         return res.status(500).json({

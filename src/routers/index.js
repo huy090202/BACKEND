@@ -11,6 +11,7 @@ const maintenanceRouter = require("./maintenance.router");
 const maintenanceDetailRouter = require("./maintenanceDetail.router");
 const orderRouter = require("./order.router");
 const motorTempRouter = require("./motorTemp.router");
+const invoiceRouter = require("./invoice.router");
 
 const routes = (app) => {
     app.use("/api/v1/user", userRouter);
@@ -26,6 +27,7 @@ const routes = (app) => {
     app.use("/api/v1/maintenance-detail", maintenanceDetailRouter);
     app.use("/api/v1/order", orderRouter);
     app.use("/api/v1/motorTemp", motorTempRouter);
+    app.use("/api/v1/invoice", invoiceRouter);
 };
 
 module.exports = routes;

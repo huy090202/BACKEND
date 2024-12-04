@@ -14,6 +14,11 @@ module.exports = {
                 defaultValue: 'Kiểm tra xe',
                 allowNull: false,
             },
+            maintenance_code: {
+                type: Sequelize.STRING(6),
+                allowNull: false,
+                unique: true
+            },
             maintenance_date: {
                 type: Sequelize.DATE,
                 defaultValue: Sequelize.NOW,

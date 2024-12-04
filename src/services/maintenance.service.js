@@ -7,9 +7,24 @@ const createMaintenance = async (data) => {
     return omit(maintenance.toJSON(), ['createdAt', 'updatedAt']);
 };
 
+// Tìm một đơn bảo dưỡng theo mã đơn
+const findMaintenanceByMaintenanceCode = async (maintenanceCode) => {
+    const maintenance = await db.Maintenance.findOne({
+        where: { maintenance_code: maintenanceCode }
+    });
+    return maintenance;
+};
+
 // Tìm một đơn bảo dưỡng theo id
 const findMaintenanceById = async (id) => {
-    const maintenance = await db.Maintenance.findByPk(id);
+    const maintenance = await db.Maintenance.findByPk(id, {
+        include: [
+            {
+                model: db.MaintenanceDetail,
+                as: 'maintenanceDetails'
+            }
+        ]
+    });
     return maintenance;
 };
 
@@ -48,6 +63,34 @@ const findAllMaintenances = async ({ offset, limit }) => {
     const maintenances = await db.Maintenance.findAll({
         offset,
         limit,
+        include: [
+            {
+                model: db.User,
+                as: 'user'
+            },
+            {
+                model: db.Motor,
+                as: 'motor',
+                include: [
+                    {
+                        model: db.MotorImage,
+                        as: 'motorImages',
+                        attributes: ['id', 'image_url']
+                    }
+                ]
+            },
+            {
+                model: db.Appointment,
+                as: 'appointment',
+                include: [
+                    {
+                        model: db.User,
+                        as: 'user',
+                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneNumber']
+                    }
+                ]
+            }
+        ],
         order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']],
     });
 
@@ -80,6 +123,7 @@ const changeMaintenanceStatus = async (id, status) => {
 
 module.exports = {
     createMaintenance,
+    findMaintenanceByMaintenanceCode,
     findMaintenanceById,
     updateMaintenanceById,
     deleteMaintenanceById,

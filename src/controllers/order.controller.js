@@ -446,6 +446,26 @@ const checkPaymentStatusHandler = async (req, res, app_trans_id) => {
     }
 };
 
+// Kiểm tra trạng thái thanh toán trả về cho client
+const checkStatusPaymentHandler = async (req, res) => {
+    try {
+        const { app_trans_id } = req.params;
+        const checkStatus = await checkPaymentStatusHandler(req, res, app_trans_id);
+        return res.status(200).json({
+            status: true,
+            message: checkStatus.return_message,
+            data: checkStatus,
+        })
+    } catch (error) {
+        console.log(error.message)
+        return res.status(500).json({
+            status: false,
+            message: "Đã có lỗi xảy ra",
+            data: {}
+        })
+    }
+};
+
 // Xóa đơn hàng
 const deleteOrderHandler = async (req, res) => {
     const { code } = req.params;
@@ -772,6 +792,7 @@ module.exports = {
     paymentHandler,
     callbackOrderHandler,
     checkPaymentStatusHandler,
+    checkStatusPaymentHandler,
     deleteOrderHandler,
     trackingOrderHandler,
     changeOrderStatusHandler,

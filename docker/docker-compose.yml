@@ -13,18 +13,19 @@ services:
             - PORT=3001
             - DB_HOST=mysql-luanvan
             - DB_PORT=3306
-            # - DB_HOST=host.docker.internal
             - MINIO_ENDPOINT=minio
-            # - MINIO_ENDPOINT=host.docker.internal
             - MINIO_PORT=9000
             - MINIO_ROOT_USER=minio090202
             - MINIO_ROOT_PASSWORD=minio090202
-            # - URL_REACT=http://localhost
+            - REDIS_HOST=redis
+            - REDIS_PORT=6379
+            - REDIS_URL=redis://redis:6379
         expose:
             - 3001
         depends_on:
             - mysql-luanvan
             - minio
+            - redis
         volumes:
             - ../:/app
             - /app/node_modules
@@ -59,6 +60,17 @@ services:
             - minio_data:/data
         command: server --console-address ":9001" /data
 
+    redis:
+        image: redis:6.2
+        container_name: redis-luanvan
+        restart: always
+        ports:
+            - '6379:6379'
+        expose:
+            - '6379'
+        volumes:
+            - redis_data:/data
+
     nginx:
         image: nginx:latest
         container_name: nginx-luanvan
@@ -75,4 +87,5 @@ services:
 volumes:
     mysql_data:
     minio_data:
+    redis_data:
 # docker compose -p luanvan_backend up --build -d

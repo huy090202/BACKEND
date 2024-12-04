@@ -3,6 +3,7 @@ const userService = require('../services/user.service');
 const appointmentService = require('../services/appointment.service');
 const { MAINTENANCE_STATUS_CODE } = require('../utils/maintenance');
 const { APPOINTMENT_STATUS_CODE } = require('../utils/appointment');
+const ShortUniqueId = require('short-unique-id');
 
 // Tạo một đơn bảo dưỡng mới
 const createMaintenanceHandler = async (req, res) => {
@@ -11,6 +12,7 @@ const createMaintenanceHandler = async (req, res) => {
         // motor_id sẽ được lấy từ id xe trong appointment
         const {
             status,
+            maintenance_code,
             maintenance_date,
             notes_before,
             notes_after,
@@ -54,8 +56,20 @@ const createMaintenanceHandler = async (req, res) => {
             });
         }
 
+        const uidGenerator = new ShortUniqueId({ length: 6 });
+        const maintenanceCode = uidGenerator.randomUUID();
+        const existedMaintenance = await maintenanceService.findMaintenanceByMaintenanceCode(maintenanceCode);
+        if (existedMaintenance) {
+            return res.status(400).json({
+                status: false,
+                message: 'Mã đơn bảo dưỡng đã tồn tại',
+                data: {}
+            });
+        }
+
         let custom_maintenance = {
             status: MAINTENANCE_STATUS_CODE['INSPECTING'],
+            maintenance_code: maintenanceCode,
             maintenance_date: appointment.appointment_date,
             notes_before: notes_before,
             notes_after: notes_after,
@@ -113,6 +127,7 @@ const updateMaintenanceByIdHandler = async (req, res) => {
 
     const {
         status,
+        maintenance_code,
         maintenance_date,
         notes_before,
         notes_after,
@@ -125,6 +140,7 @@ const updateMaintenanceByIdHandler = async (req, res) => {
 
     const custom_maintenance = {
         status: status || maintenance.status,
+        maintenance_code: maintenance_code || maintenance.maintenance_code,
         maintenance_date: maintenance_date || maintenance.maintenance_date,
         notes_before: notes_before || maintenance.notes_before,
         notes_after: notes_after || maintenance.notes_after,
@@ -192,7 +208,18 @@ const changeMaintenanceStatusHandler = async (req, res) => {
                     status: APPOINTMENT_STATUS_CODE['COMPLETED']
                 });
             }
-        } else {
+        } else if (status === MAINTENANCE_STATUS_CODE['CANCEL']) {
+            maintenance = await maintenanceService.updateMaintenanceById(id, {
+                status: MAINTENANCE_STATUS_CODE['CANCEL']
+            });
+
+            if (maintenance && maintenance.appointment_id) {
+                const result = await appointmentService.changeAppointmentStatus(maintenance.appointment_id, {
+                    status: APPOINTMENT_STATUS_CODE['CANCEL']
+                });
+            }
+        }
+        else {
             maintenance = await maintenanceService.updateMaintenanceById(id, {
                 status: status
             });
@@ -296,6 +323,7 @@ const getAllMaintenancesHandler = async (req, res) => {
             data: maintenances.rows.map((item) => ({
                 id: item.id,
                 status: item.status,
+                maintenance_code: item.maintenance_code,
                 maintenance_date: item.maintenance_date,
                 notes_before: item.notes_before,
                 notes_after: item.notes_after,
@@ -304,6 +332,9 @@ const getAllMaintenancesHandler = async (req, res) => {
                 user_id: item.user_id,
                 motor_id: item.motor_id,
                 appointment_id: item.appointment_id,
+                user: item.user,
+                motor: item.motor,
+                appointment: item.appointment
             })),
             total: maintenances.count,
             page: parseInt(page),
@@ -358,7 +389,7 @@ const allMaintenancesHandler = async (req, res) => {
         return res.status(200).json({
             status: true,
             message: 'Lấy tất cả đơn bảo dưỡng thành công',
-            data: maintenances.data,
+            data: maintenances,
             total: maintenances.count,
             page: parseInt(page),
             limit: parseInt(limit)
@@ -379,12 +410,12 @@ const allMaintenancesHistoryHandler = async (req, res) => {
     try {
         let maintenances = [];
         maintenances = await appointmentService.findMaintenanceHistoryByUserIdWithAppointment({
-            id: user_id,
+            id: user_id
         });
         return res.status(200).json({
             status: true,
             message: 'Lấy lịch sử bảo dưỡng của người dùng thành công',
-            data: maintenances.data,
+            data: maintenances,
             total: maintenances.count,
         });
     } catch (e) {
