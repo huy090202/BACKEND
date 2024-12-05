@@ -11,8 +11,10 @@ router.patch("/change-status/:id", [deserializeUser, restrictTo(["Quản trị v
 router.delete("/delete/:id", deserializeUser, maintenanceController.deleteMaintenanceByIdHandler);
 router.get("/get/:id", deserializeUser, maintenanceController.getMaintenanceByIdHandler);
 router.get("/all", deserializeUser, maintenanceController.getAllMaintenancesHandler);
+router.get("/get-all", [deserializeUser, restrictTo(["Kỹ thuật viên"])], maintenanceController.getAllMaintenancesByTechHandler);
 
 // Public - tất cả đơn bảo dưỡng của 1 người dùng
 router.get("/me", deserializeUser, maintenanceController.allMaintenancesHandler);
+router.get("/history/:user_id", [deserializeUser, restrictTo(["Kỹ thuật viên"])], maintenanceController.allMaintenancesHistoryHandler);
 
 module.exports = router;

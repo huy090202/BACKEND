@@ -16,10 +16,10 @@ module.exports = (sequelize, DataTypes) => {
             });
 
             // 1 người dùng có thể có nhiều đơn hàng
-            User.hasMany(models.Invoice, {
-                foreignKey: 'user_id',
-                as: 'invoices',
-            });
+            // User.hasMany(models.Invoice, {
+            //     foreignKey: 'user_id',
+            //     as: 'invoices',
+            // });
 
             // 1 người dùng có thể có nhiều đơn bảo dưỡng
             User.hasMany(models.Maintenance, {

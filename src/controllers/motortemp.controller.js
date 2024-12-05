@@ -109,20 +109,28 @@ const createMotorTempHandler = async (req, res) => {
         })
     }
 
-    const motorTemp = await motorTempService.createMotorTemp({ email, phone, motor_name, motor_type, motor_color, license_plate, engine_number, chassis_number, motor_model, created_at });
-    if (!motorTemp) {
+    try {
+        const motorTemp = await motorTempService.createMotorTemp({ email, phone, motor_name, motor_type, motor_color, license_plate, engine_number, chassis_number, motor_model, created_at });
+        if (!motorTemp) {
+            return res.status(500).json({
+                status: false,
+                message: "Xe đã được tạo thất bại",
+                data: {}
+            })
+        }
+
+        return res.status(201).json({
+            status: true,
+            message: "Xe đã được tạo thành công",
+            data: motorTemp
+        })
+    } catch (error) {
         return res.status(500).json({
             status: false,
             message: "Xe đã được tạo thất bại",
             data: {}
         })
     }
-
-    return res.status(201).json({
-        status: true,
-        message: "Xe đã được tạo thành công",
-        data: motorTemp
-    })
 };
 
 // Tìm một xe tạm theo id
@@ -136,26 +144,34 @@ const getMotorTempByIdHandler = async (req, res) => { };
 
 // Tìm tất cả xe tạm 
 const getAllMotorTempsHandler = async (req, res) => {
-    let motorTemps = [];
-    motorTemps = await motorTempService.findMotorTemps();
-    return res.status(200).json({
-        status: true,
-        message: "Lấy tất cả xe thành công",
-        data: motorTemps.rows.map((item) => ({
-            id: item.id,
-            email: item.email,
-            phone: item.phone,
-            motor_name: item.motor_name,
-            motor_type: item.motor_type,
-            motor_color: item.motor_color,
-            license_plate: item.license_plate,
-            engine_number: item.engine_number,
-            chassis_number: item.chassis_number,
-            motor_model: item.motor_model,
-            created_at: item.created_at,
-        })),
-        total: motorTemps.count,
-    })
+    try {
+        let motorTemps = [];
+        motorTemps = await motorTempService.findMotorTemps();
+        return res.status(200).json({
+            status: true,
+            message: "Lấy tất cả xe thành công",
+            data: motorTemps.rows.map((item) => ({
+                id: item.id,
+                email: item.email,
+                phone: item.phone,
+                motor_name: item.motor_name,
+                motor_type: item.motor_type,
+                motor_color: item.motor_color,
+                license_plate: item.license_plate,
+                engine_number: item.engine_number,
+                chassis_number: item.chassis_number,
+                motor_model: item.motor_model,
+                created_at: item.created_at,
+            })),
+            total: motorTemps.count,
+        })
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: "Lấy tất cả xe thất bại",
+            data: {}
+        })
+    }
 };
 
 module.exports = {

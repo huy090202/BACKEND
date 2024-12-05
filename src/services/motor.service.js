@@ -27,7 +27,18 @@ const findMotorByChassisNumber = async (chassis_number) => {
 
 // Tìm một xe theo id
 const findMotorById = async (id) => {
-    const motor = await db.Motor.findByPk(id)
+    const motor = await db.Motor.findByPk(
+        id,
+        {
+            include: [
+                {
+                    model: db.MotorImage,
+                    as: 'motorImages',
+                    attributes: ['id', 'image_url']
+                },
+            ]
+        }
+    )
     return motor;
 };
 
@@ -55,7 +66,8 @@ const findMotors = async ({ userId, offset, limit }) => {
     const motors = await db.Motor.findAndCountAll({
         where: userId,
         offset,
-        limit
+        limit,
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']],
     });
     return motors;
 };

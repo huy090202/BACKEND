@@ -15,5 +15,6 @@ router.get("/get-all", [deserializeUser, restrictTo(["Quản trị viên", "Nhâ
 
 // Public
 router.get("/get", motorcyclepartsController.getMotorcyclepartsHandler)
+router.get("/all-by-category", motorcyclepartsController.allMotorcyclepartsByCategoryHandler)
 
 module.exports = router;

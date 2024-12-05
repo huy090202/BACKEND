@@ -13,11 +13,10 @@ const updateStock = async (data) => {
 
     try {
         const stock = await db.Stock.update(
-            { quantity },
+            { quantity, warehouse_id },
             {
                 where: {
-                    warehouse_id: warehouse_id,
-                    part_id: part_id,
+                    part_id,
                 },
                 returning: true
             }

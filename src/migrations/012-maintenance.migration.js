@@ -10,9 +10,14 @@ module.exports = {
                 defaultValue: Sequelize.UUIDV4
             },
             status: {
-                type: Sequelize.ENUM("Nhận xe", "Kiểm tra xe", "Đang bảo dưỡng", "Hoàn thành bảo dưỡng"),
-                defaultValue: 'Nhận xe',
+                type: Sequelize.ENUM("Kiểm tra xe", "Đang bảo dưỡng", "Hoàn thành bảo dưỡng", "Đã hủy"),
+                defaultValue: 'Kiểm tra xe',
                 allowNull: false,
+            },
+            maintenance_code: {
+                type: Sequelize.STRING(6),
+                allowNull: false,
+                unique: true
             },
             maintenance_date: {
                 type: Sequelize.DATE,
@@ -20,19 +25,19 @@ module.exports = {
             },
             notes_before: {
                 type: Sequelize.TEXT,
-                allowNull: false,
+                allowNull: true,
             },
             notes_after: {
                 type: Sequelize.TEXT,
-                allowNull: false,
+                allowNull: true,
             },
             wear_percentage_before: {
                 type: Sequelize.INTEGER,
-                allowNull: false,
+                allowNull: true,
             },
             wear_percentage_after: {
                 type: Sequelize.INTEGER,
-                allowNull: false,
+                allowNull: true,
             },
             user_id: {
                 type: Sequelize.UUID,

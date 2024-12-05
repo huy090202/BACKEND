@@ -13,6 +13,7 @@ router.put("/update", deserializeUser, upload.single("avatar"), userController.u
 router.patch("/change-password", deserializeUser, userController.changePasswordHandler);
 router.get("/profile", deserializeUser, userController.getUserProfileHandler);
 router.post("/refresh-token", deserializeUser, userController.refreshTokenHandler);
+router.get("/get/:id", deserializeUser, userController.getUserByIdHandler);
 
 router.post("/create-staff", [deserializeUser, restrictTo(["Quản trị viên"])], userController.createStaffHandler);
 router.patch("/update-status/:id", [deserializeUser, restrictTo(["Quản trị viên"])], userController.updateUserStatusHandler);
@@ -25,5 +26,8 @@ router.get("/all-admin", [deserializeUser, restrictTo(["Quản trị viên"])], 
 
 // Tự động tạo tài khoản khách hàng vãng lai
 router.post("/guest", userController.createGuestUserHandler);
+
+// Hiển thị danh sách kỹ thuật viên của hệ thống cho khách hàng xem
+router.get("/techs", userController.allTechsHandler);
 
 module.exports = router;

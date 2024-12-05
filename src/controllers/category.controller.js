@@ -27,20 +27,28 @@ const createCategoryHandler = async (req, res) => {
         })
     }
 
-    const category = await categoryService.createCategory(req.body);
-    if (!category) {
+    try {
+        const category = await categoryService.createCategory(req.body);
+        if (!category) {
+            return res.status(500).json({
+                status: false,
+                message: "Có lỗi xảy ra khi tạo danh mục",
+                data: {}
+            })
+        }
+
+        return res.status(201).json({
+            status: true,
+            message: "Danh mục đã được tạo thành công",
+            data: category
+        })
+    } catch (error) {
         return res.status(500).json({
             status: false,
             message: "Có lỗi xảy ra khi tạo danh mục",
             data: {}
         })
     }
-
-    return res.status(201).json({
-        status: true,
-        message: "Danh mục đã được tạo thành công",
-        data: category
-    })
 };
 
 // Cập nhật danh mục theo id
@@ -78,20 +86,28 @@ const updateCategoryByIdHandler = async (req, res) => {
         })
     }
 
-    const category = await categoryService.updateCategoryById(id, req.body);
-    if (!category) {
+    try {
+        const category = await categoryService.updateCategoryById(id, req.body);
+        if (!category) {
+            return res.status(500).json({
+                status: false,
+                message: "Có lỗi xảy ra khi cập nhật danh mục",
+                data: {}
+            })
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: "Danh mục đã được cập nhật thành công",
+            data: category
+        })
+    } catch (error) {
         return res.status(500).json({
             status: false,
             message: "Có lỗi xảy ra khi cập nhật danh mục",
             data: {}
         })
     }
-
-    return res.status(200).json({
-        status: true,
-        message: "Danh mục đã được cập nhật thành công",
-        data: category
-    })
 };
 
 // Thay đổi trạng thái danh mục
@@ -114,16 +130,24 @@ const changeCategoryStatusHandler = async (req, res) => {
         })
     }
 
-    const { active } = req.body;
-    let activeVar = true;
-    if (active === 'false' || active === false) activeVar = false;
-    await categoryService.updateCategory(id, activeVar);
+    try {
+        const { active } = req.body;
+        let activeVar = true;
+        if (active === 'false' || active === false) activeVar = false;
+        await categoryService.updateCategory(id, activeVar);
 
-    return res.status(200).json({
-        status: true,
-        message: activeVar ? "Danh mục đã được kích hoạt" : "Danh mục đã được vô hiệu hóa",
-        data: {}
-    })
+        return res.status(200).json({
+            status: true,
+            message: activeVar ? "Danh mục đã được kích hoạt" : "Danh mục đã được vô hiệu hóa",
+            data: {}
+        })
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: "Có lỗi xảy ra khi thay đổi trạng thái danh mục",
+            data: {}
+        })
+    }
 };
 
 // Xoá danh mục theo id
@@ -137,20 +161,28 @@ const deleteCategoryByIdHandler = async (req, res) => {
         })
     }
 
-    const category = await categoryService.deleteCategoryById(id);
-    if (!category) {
-        return res.status(404).json({
+    try {
+        const category = await categoryService.deleteCategoryById(id);
+        if (!category) {
+            return res.status(404).json({
+                status: false,
+                message: `Danh mục '${id}' không tồn tại`,
+                data: {}
+            })
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: "Danh mục đã được xoá thành công",
+            data: {}
+        })
+    } catch (error) {
+        return res.status(500).json({
             status: false,
-            message: `Danh mục '${id}' không tồn tại`,
+            message: "Có lỗi xảy ra khi xoá danh mục",
             data: {}
         })
     }
-
-    return res.status(200).json({
-        status: true,
-        message: "Danh mục đã được xoá thành công",
-        data: {}
-    })
 
 };
 
@@ -165,19 +197,27 @@ const getCategoryByIdHandler = async (req, res) => {
         })
     }
 
-    const category = await categoryService.findCategoryById(id);
-    if (!category) {
-        return res.status(404).json({
+    try {
+        const category = await categoryService.findCategoryById(id);
+        if (!category) {
+            return res.status(404).json({
+                status: false,
+                message: `Danh mục '${id}' không tồn tại`,
+            })
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: "Lấy thông tin danh mục thành công",
+            data: category
+        })
+    } catch (error) {
+        return res.status(500).json({
             status: false,
-            message: `Danh mục '${id}' không tồn tại`,
+            message: "Có lỗi xảy ra khi lấy thông tin danh mục",
+            data: {}
         })
     }
-
-    return res.status(200).json({
-        status: true,
-        message: "Lấy thông tin danh mục thành công",
-        data: category
-    })
 };
 
 // Admin - Lấy tất cả danh mục
@@ -185,33 +225,49 @@ const getAllCategoriesHandler = async (req, res) => {
     const { active, page = 1, limit = 5 } = req.query;
     const offset = (page - 1) * parseInt(limit);
 
-    let categories = [];
-    if (active === 'true' || active === true)
-        categories = await categoryService.findCategories({ status: { active: true }, offset, limit: parseInt(limit) });
-    else if (active === 'false' || active === false)
-        categories = await categoryService.findCategories({ status: { active: false }, offset, limit: parseInt(limit) });
-    else categories = await categoryService.findCategories({ status: {}, offset, limit: parseInt(limit) });
+    try {
+        let categories = [];
+        if (active === 'true' || active === true)
+            categories = await categoryService.findCategories({ status: { active: true }, offset, limit: parseInt(limit) });
+        else if (active === 'false' || active === false)
+            categories = await categoryService.findCategories({ status: { active: false }, offset, limit: parseInt(limit) });
+        else categories = await categoryService.findCategories({ status: {}, offset, limit: parseInt(limit) });
 
-    return res.status(200).json({
-        status: true,
-        message: "Lấy danh sách danh mục thành công",
-        data: categories.rows,
-        total: categories.count,
-        page: parseInt(page),
-        limit: parseInt(limit)
-    })
+        return res.status(200).json({
+            status: true,
+            message: "Lấy danh sách danh mục thành công",
+            data: categories.rows,
+            total: categories.count,
+            page: parseInt(page),
+            limit: parseInt(limit)
+        })
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: "Có lỗi xảy ra khi lấy danh sách danh mục",
+            data: {}
+        })
+    }
 };
 
 // Public - Lấy tất cả danh mục có trạng thái active
 const getCategoriesHandler = async (req, res) => {
-    let categories = [];
-    categories = await categoryService.findCategories({ status: { active: true } });
-    return res.status(200).json({
-        status: true,
-        message: "Lấy danh sách danh mục thành công",
-        data: categories.rows,
-        total: categories.count,
-    })
+    try {
+        let categories = [];
+        categories = await categoryService.findCategories({ status: { active: true } });
+        return res.status(200).json({
+            status: true,
+            message: "Lấy danh sách danh mục thành công",
+            data: categories.rows,
+            total: categories.count,
+        })
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: "Có lỗi xảy ra khi lấy danh sách danh mục",
+            data: {}
+        })
+    }
 };
 
 module.exports = {

@@ -7,9 +7,60 @@ const createMaintenance = async (data) => {
     return omit(maintenance.toJSON(), ['createdAt', 'updatedAt']);
 };
 
+// Tìm một đơn bảo dưỡng theo mã đơn
+const findMaintenanceByMaintenanceCode = async (maintenanceCode) => {
+    const maintenance = await db.Maintenance.findOne({
+        where: { maintenance_code: maintenanceCode }
+    });
+    return maintenance;
+};
+
 // Tìm một đơn bảo dưỡng theo id
 const findMaintenanceById = async (id) => {
-    const maintenance = await db.Maintenance.findByPk(id);
+    const maintenance = await db.Maintenance.findByPk(id, {
+        include: [
+            {
+                model: db.User,
+                as: 'user'
+            },
+            {
+                model: db.Motor,
+                as: 'motor',
+                include: [
+                    {
+                        model: db.MotorImage,
+                        as: 'motorImages',
+                        attributes: ['id', 'image_url']
+                    }
+                ]
+            },
+            {
+                model: db.MaintenanceDetail,
+                as: 'maintenanceDetails',
+                include: [
+                    {
+                        model: db.MotorcycleParts,
+                        as: 'part'
+                    }
+                ]
+            },
+            {
+                model: db.Appointment,
+                as: 'appointment',
+                include: [
+                    {
+                        model: db.User,
+                        as: 'user',
+                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneNumber']
+                    }
+                ]
+            },
+            {
+                model: db.Invoice,
+                as: 'invoice'
+            }
+        ]
+    });
     return maintenance;
 };
 
@@ -37,7 +88,8 @@ const findMaintenances = async ({ userId, offset, limit }) => {
     const maintenances = await db.Maintenance.findAndCountAll({
         where: userId,
         offset,
-        limit
+        limit,
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']],
     });
     return maintenances;
 };
@@ -49,20 +101,43 @@ const findAllMaintenances = async ({ offset, limit }) => {
         limit,
         include: [
             {
-                // Lấy thông tin chi tiết bảo dưỡng thông qua associated với đơn bảo dưỡng
+                model: db.User,
+                as: 'user'
+            },
+            {
+                model: db.Motor,
+                as: 'motor',
+                include: [
+                    {
+                        model: db.MotorImage,
+                        as: 'motorImages',
+                        attributes: ['id', 'image_url']
+                    }
+                ]
+            },
+            {
                 model: db.MaintenanceDetail,
                 as: 'maintenanceDetails',
                 include: [
                     {
-                        // Lấy thông tin phụ tùng thông qua associated với chi tiết bảo dưỡng
                         model: db.MotorcycleParts,
-                        as: 'part',
-                        attributes: ['id', 'part_name', 'part_price', 'average_life', 'description', 'part_image', 'manufacturer_id', 'category_id']
+                        as: 'part'
                     }
-                ],
-                attributes: ['id', 'quantity', 'price', 'wear_percentage', 'part_id']
+                ]
+            },
+            {
+                model: db.Appointment,
+                as: 'appointment',
+                include: [
+                    {
+                        model: db.User,
+                        as: 'user',
+                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneNumber']
+                    }
+                ]
             }
-        ]
+        ],
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']],
     });
 
     const totalMaintenances = await db.Maintenance.count();
@@ -72,6 +147,31 @@ const findAllMaintenances = async ({ offset, limit }) => {
     }
 };
 
+// Tìm tất cả đơn bảo dưỡng của kỹ thuật viên
+const findMaintenancesByTechId = async (id) => {
+    const maintenances = await db.Maintenance.findAndCountAll({
+        where: { user_id: id },
+        include: [
+            {
+                model: db.Motor,
+                as: 'motor'
+            },
+            {
+                model: db.MaintenanceDetail,
+                as: 'maintenanceDetails',
+                include: [
+                    {
+                        model: db.MotorcycleParts,
+                        as: 'part'
+                    }
+                ]
+            }
+        ],
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']],
+    });
+    return maintenances;
+};
+
 // Câp nhật trạng thái đơn bảo dưỡng
 const changeMaintenanceStatus = async (id, status) => {
     return await db.Maintenance.update(status, { where: { id } });
@@ -79,10 +179,12 @@ const changeMaintenanceStatus = async (id, status) => {
 
 module.exports = {
     createMaintenance,
+    findMaintenanceByMaintenanceCode,
     findMaintenanceById,
     updateMaintenanceById,
     deleteMaintenanceById,
     findMaintenances,
     findAllMaintenances,
+    findMaintenancesByTechId,
     changeMaintenanceStatus,
 };

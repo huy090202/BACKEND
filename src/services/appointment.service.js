@@ -9,7 +9,18 @@ const createAppointment = async (data) => {
 
 // Tìm một lịch hẹn theo id
 const findAppointmentById = async (id) => {
-    const appointment = await db.Appointment.findByPk(id);
+    const appointment = await db.Appointment.findByPk(id,
+        {
+            include: [
+                {
+                    // Lấy thông tin hình ảnh lịch hẹn thông qua associated với lịch hẹn
+                    model: db.AppointmentImage,
+                    as: 'images',
+                    attributes: ['id', 'image_url']
+                }
+            ]
+        }
+    );
     return appointment;
 };
 
@@ -48,7 +59,14 @@ const findAppointments = async ({ offset, limit }) => {
                 // Lấy thông tin xe thông qua associated với lịch hẹn
                 model: db.Motor,
                 as: 'motor',
-                attributes: ['id', 'motor_name', 'motor_type', 'motor_color', 'license_plate', 'engine_number', 'chassis_number', 'motor_model', 'created_at']
+                attributes: ['id', 'motor_name', 'motor_type', 'motor_color', 'license_plate', 'engine_number', 'chassis_number', 'motor_model', 'created_at'],
+                include: [
+                    {
+                        model: db.MotorImage,
+                        as: 'motorImages',
+                        attributes: ['id', 'image_url']
+                    }
+                ]
             },
             {
                 // Lấy thông tin hình ảnh lịch hẹn thông qua associated với lịch hẹn
@@ -57,7 +75,11 @@ const findAppointments = async ({ offset, limit }) => {
                 attributes: ['id', 'image_url']
             }
         ],
-        attributes: ['id', 'appointment_date', 'appointment_time', 'content', 'image_url', 'status', 'created_at', 'user_id', 'motor_id']
+        order: [
+            ['createdAt', 'DESC'],
+            ['updatedAt', 'DESC']
+        ],
+        // attributes: ['id', 'appointment_date', 'appointment_time', 'content', 'image_url', 'status', 'created_at', 'user_id', 'motor_id'],
     });
 
     const totalAppointments = await db.Appointment.count();
@@ -93,7 +115,8 @@ const findAppointmentsPublic = async ({ id, offset, limit }) => {
                 attributes: ['id', 'image_url']
             }
         ],
-        attributes: ['id', 'appointment_date', 'appointment_time', 'content', 'image_url', 'status', 'created_at', 'user_id', 'motor_id']
+        // attributes: ['id', 'appointment_date', 'appointment_time', 'content', 'image_url', 'status', 'created_at', 'user_id', 'motor_id'],
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']]
     });
     const totalAppointments = await db.Appointment.count();
     return {
@@ -113,6 +136,7 @@ const findMaintenancesByUserIdWithAppointment = async ({ id, offset, limit }) =>
                 // Lấy thông tin bảo dưỡng thông qua associated với lịch hẹn
                 model: db.Maintenance,
                 as: 'maintenance',
+                required: true,
                 include: [
                     {
                         // Lấy thông tin chi tiết bảo dưỡng thông qua associated với đơn bảo dưỡng
@@ -148,6 +172,11 @@ const findMaintenancesByUserIdWithAppointment = async ({ id, offset, limit }) =>
                                 model: db.AppointmentImage,
                                 as: 'images',
                                 attributes: ['id', 'image_url']
+                            },
+                            {
+                                model: db.User,
+                                as: 'user',
+                                attributes: ['id', 'email', 'firstName', 'lastName', 'phoneNumber']
                             }
                         ],
                         attributes: ['id']
@@ -155,9 +184,74 @@ const findMaintenancesByUserIdWithAppointment = async ({ id, offset, limit }) =>
                 ]
             }
         ],
-        attributes: ['id', 'user_id', 'motor_id']
+        // attributes: ['id', 'user_id', 'motor_id'],
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']]
     });
-    return maintenanes.rows.map(data => data.maintenance);
+    return maintenanes;
+};
+
+// Lấy danh sách lịch sử đơn bảo dưỡng theo id người dùng thông qua appointment
+const findMaintenanceHistoryByUserIdWithAppointment = async ({ id }) => {
+    const maintenanes = await db.Appointment.findAll({
+        where: { user_id: id },
+        include: [
+            {
+                // Lấy thông tin bảo dưỡng thông qua associated với lịch hẹn
+                model: db.Maintenance,
+                as: 'maintenance',
+                required: true,
+                where: { status: 'Hoàn thành bảo dưỡng' },
+                include: [
+                    {
+                        // Lấy thông tin chi tiết bảo dưỡng thông qua associated với đơn bảo dưỡng
+                        model: db.MaintenanceDetail,
+                        as: 'maintenanceDetails',
+                        include: [
+                            {
+                                // Lấy thông tin phụ tùng thông qua associated với chi tiết bảo dưỡng
+                                model: db.MotorcycleParts,
+                                as: 'part'
+                            }
+                        ]
+                    },
+                    {
+                        // Lấy thông tin xe thông qua associated với đơn bảo dưỡng
+                        model: db.Motor,
+                        as: 'motor',
+                        attributes: ['id', 'motor_name', 'motor_type', 'motor_color', 'license_plate', 'engine_number', 'chassis_number', 'motor_model', 'created_at']
+                    },
+                    {
+                        // Lấy thông tin người dùng ( role = technician) thông qua associated với đơn bảo dưỡng
+                        model: db.User,
+                        as: 'user',
+                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneNumber']
+                    },
+                    {
+                        // Lấy thông tin lịch hẹn thông qua associated với đơn bảo dưỡng
+                        model: db.Appointment,
+                        as: 'appointment',
+                        include: [
+                            {
+                                // Lấy thông tin hình ảnh lịch hẹn thông qua associated với lịch hẹn
+                                model: db.AppointmentImage,
+                                as: 'images',
+                                attributes: ['id', 'image_url']
+                            },
+                            {
+                                model: db.User,
+                                as: 'user',
+                                attributes: ['id', 'email', 'firstName', 'lastName', 'phoneNumber']
+                            }
+                        ],
+                        attributes: ['id']
+                    }
+                ]
+            }
+        ],
+        // attributes: ['id', 'user_id', 'motor_id'],
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']]
+    });
+    return maintenanes;
 };
 
 // Thay đổi trạng thái lịch hẹn
@@ -173,5 +267,6 @@ module.exports = {
     findAppointments,
     changeAppointmentStatus,
     findAppointmentsPublic,
-    findMaintenancesByUserIdWithAppointment
+    findMaintenancesByUserIdWithAppointment,
+    findMaintenanceHistoryByUserIdWithAppointment
 };

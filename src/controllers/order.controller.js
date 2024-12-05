@@ -6,6 +6,7 @@ const ShortUniqueId = require('short-unique-id');
 const orderService = require('../services/order.service');
 const orderDetailService = require('../services/orderDetail.service');
 const partService = require('../services/motorcycleparts.service');
+const stockService = require('../services/stock.service');
 const emailService = require('../services/email.service');
 const zalopayConfig = require('../configs/zalopayConfig');
 const { EMAIL_VALIDATION, PHONE_NUMBER_VALIDATION, ORDER_CODE_VALIDATION } = require('../utils/validations');
@@ -119,7 +120,7 @@ const createOrderHandler = async (req, res) => {
                             });
                         }
 
-                        if (existedPart.quantity <= 0) {
+                        if (existedPart.stocks[0].quantity <= 0) {
                             await t.rollback();
                             return res.status(400).json({
                                 status: false,
@@ -128,7 +129,7 @@ const createOrderHandler = async (req, res) => {
                             });
                         }
 
-                        if (existedPart.quantity < quantity) {
+                        if (existedPart.stocks[0].quantity < quantity) {
                             await t.rollback();
                             return res.status(400).json({
                                 status: false,
@@ -137,7 +138,7 @@ const createOrderHandler = async (req, res) => {
                             });
                         }
 
-                        if (price !== existedPart.part_price || price <= 0) {
+                        if (price <= 0) {
                             await t.rollback();
                             return res.status(400).json({
                                 status: false,
@@ -165,8 +166,10 @@ const createOrderHandler = async (req, res) => {
                             transaction: t,
                         })
 
-                        await partService.updateMotorcycleparts(part_id, {
-                            quantity: existedPart.quantity - newOrderDetail.quantity
+                        await stockService.updateStock({
+                            part_id: part_id,
+                            quantity: existedPart.stocks[0].quantity - newOrderDetail.quantity,
+                            warehouse_id: existedPart.stocks[0].warehouse.id
                         }, {
                             transaction: t,
                         });
@@ -255,7 +258,7 @@ const paymentHandler = async (order, details) => {
         }));
 
         const embed_data = {
-            redirecturl: `${process.env.URL_REACT}/` || 'http://localhost:3000/',
+            redirecturl: `${process.env.URL_REACT}/menu` || 'http://localhost:3000/menu',
             order_code: order.order_code,
             name: order.name,
             email: order.email,
@@ -344,7 +347,7 @@ const callbackOrderHandler = async (req, res) => {
                 payment_status: PAYMENT_STATUS_CODE['PAID'],
                 order_code: embedData.order_code,
                 user_id: embedData.user_id,
-                delivery_method: DELIVERY_METHOD_CODE[embedData.delivery_method],
+                delivery_method: DELIVERY_METHOD_CODE['DELIVERY'],
                 payment_method: PAYMENT_METHOD_CODE[embedData.payment_method],
                 order_date: '',
             }
@@ -367,8 +370,10 @@ const callbackOrderHandler = async (req, res) => {
                         part_id: item.part_id
                     })
 
-                    await partService.updateMotorcycleparts(item.part_id, {
-                        quantity: existedPart.quantity - newOrderDetail.quantity
+                    await stockService.updateStock({
+                        part_id: item.part_id,
+                        quantity: existedPart.stocks[0].quantity - newOrderDetail.quantity,
+                        warehouse_id: existedPart.stocks[0].warehouse.id
                     });
                 } catch (error) {
                     console.log("Đã có lỗi xảy ra khi xác nhận thanh toán trực tuyến:", error.message);
@@ -441,6 +446,26 @@ const checkPaymentStatusHandler = async (req, res, app_trans_id) => {
     }
 };
 
+// Kiểm tra trạng thái thanh toán trả về cho client
+const checkStatusPaymentHandler = async (req, res) => {
+    try {
+        const { app_trans_id } = req.params;
+        const checkStatus = await checkPaymentStatusHandler(req, res, app_trans_id);
+        return res.status(200).json({
+            status: true,
+            message: checkStatus.return_message,
+            data: checkStatus,
+        })
+    } catch (error) {
+        console.log(error.message)
+        return res.status(500).json({
+            status: false,
+            message: "Đã có lỗi xảy ra",
+            data: {}
+        })
+    }
+};
+
 // Xóa đơn hàng
 const deleteOrderHandler = async (req, res) => {
     const { code } = req.params;
@@ -480,24 +505,32 @@ const trackingOrderHandler = async (req, res) => {
         });
     }
 
-    let order;
-    if (code.match(ORDER_CODE_VALIDATION)) {
-        order = await orderService.findAllOrderByOrderCode(code);
-    } else if (code.match(PHONE_NUMBER_VALIDATION)) {
-        order = await orderService.findAllOrderByPhone(code);
-    } else {
-        return res.status(400).json({
+    try {
+        let order;
+        if (code.match(ORDER_CODE_VALIDATION)) {
+            order = await orderService.findAllOrderByOrderCode(code);
+        } else if (code.match(PHONE_NUMBER_VALIDATION)) {
+            order = await orderService.findAllOrderByPhone(code);
+        } else {
+            return res.status(400).json({
+                status: false,
+                message: 'Đơn hàng không tồn tại',
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: 'Lấy thông tin đơn hàng thành công',
+            data: order
+        });
+    } catch (error) {
+        return res.status(500).json({
             status: false,
-            message: 'Đơn hàng không tồn tại',
+            message: 'Đã có lỗi xảy ra',
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: 'Lấy thông tin đơn hàng thành công',
-        data: order
-    });
 };
 
 // Cập nhật trạng thái đơn hàng
@@ -520,31 +553,39 @@ const changeOrderStatusHandler = async (req, res) => {
         });
     }
 
-    let order;
-    if (status === ORDER_STATUS_CODE['DELIVERED']) {
-        order = await orderService.updateOrderStatusById(id, {
-            order_status: ORDER_STATUS_CODE['DELIVERED'],
-            payment_status: PAYMENT_STATUS_CODE['PAID']
-        });
-    } else {
-        order = await orderService.updateOrderStatusById(id, {
-            order_status: status
-        });
-    }
+    try {
+        let order;
+        if (status === ORDER_STATUS_CODE['DELIVERED']) {
+            order = await orderService.updateOrderStatusById(id, {
+                order_status: ORDER_STATUS_CODE['DELIVERED'],
+                payment_status: PAYMENT_STATUS_CODE['PAID']
+            });
+        } else {
+            order = await orderService.updateOrderStatusById(id, {
+                order_status: status
+            });
+        }
 
-    if (!order) {
-        return res.status(400).json({
+        if (!order) {
+            return res.status(400).json({
+                status: false,
+                message: 'Cập nhật trạng thái đơn hàng không thành công',
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: `Trạng thái đơn hàng đã được cập nhật thành ${status}`,
+            data: order
+        });
+    } catch (error) {
+        return res.status(500).json({
             status: false,
-            message: 'Cập nhật trạng thái đơn hàng không thành công',
+            message: 'Đã có lỗi xảy ra khi cập nhật trạng thái đơn hàng',
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: `Trạng thái đơn hàng đã được cập nhật thành ${status}`,
-        data: order
-    });
 };
 
 // Cập nhật trạng thái thanh toán
@@ -567,28 +608,36 @@ const changePaymentStatusHandler = async (req, res) => {
         });
     }
 
-    const order = await orderService.updateOrderPaymentStatusByCode(
-        {
-            order_code: orderCode,
-        },
-        {
-            payment_status: status
-        }
-    )
+    try {
+        const order = await orderService.updateOrderPaymentStatusByCode(
+            {
+                order_code: orderCode,
+            },
+            {
+                payment_status: status
+            }
+        )
 
-    if (!order) {
-        return res.status(400).json({
+        if (!order) {
+            return res.status(400).json({
+                status: false,
+                message: 'Cập nhật trạng thái thanh toán không thành công',
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: `Trạng thái thanh toán đã được cập nhật thành ${status}`,
+            data: {}
+        });
+    } catch (error) {
+        return res.status(500).json({
             status: false,
-            message: 'Cập nhật trạng thái thanh toán không thành công',
+            message: 'Đã có lỗi xảy ra khi cập nhật trạng thái thanh toán',
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: `Trạng thái thanh toán đã được cập nhật thành ${status}`,
-        data: {}
-    });
 };
 
 // Lấy tất cả đơn hàng của 1 người dùng
@@ -597,65 +646,73 @@ const getAllOrdersHandler = async (req, res) => {
     const { page = 1, limit = 5 } = req.query;
     const offset = (page - 1) * parseInt(limit);
 
-    let orders = [];
+    try {
+        let orders = [];
 
-    orders = await orderService.findAllOrdersByUserId(id, {
-        offset,
-        limit: parseInt(limit)
-    })
+        orders = await orderService.findAllOrdersByUserId(id, {
+            offset,
+            limit: parseInt(limit)
+        })
 
-    if (!orders) {
-        return res.status(400).json({
+        if (!orders) {
+            return res.status(400).json({
+                status: false,
+                message: 'Không có đơn hàng nào',
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: 'Lấy thông tin đơn hàng thành công',
+            data: orders.rows.map((order) => ({
+                id: order.id,
+                order_code: order.order_code,
+                total_price: order.total_price,
+                total_quantity: order.total_quantity,
+                order_status: order.order_status,
+                payment_status: order.payment_status,
+                payment_method: order.payment_method,
+                delivery_method: order.delivery_method,
+                order_date: order.order_date,
+                user_id: order.user_id,
+                name: order.name,
+                email: order.email,
+                phone: order.phone,
+                notes: order.notes,
+                details: order.orderDetails.map((detailItem) => ({
+                    id: detailItem.id,
+                    quantity: detailItem.quantity,
+                    price: detailItem.price,
+                    total_price: detailItem.price * detailItem.quantity,
+                    part_id: detailItem.part_id,
+                    part: {
+                        part_name: detailItem.part.part_name,
+                        part_price: detailItem.part.part_price,
+                        sale: detailItem.part.sale,
+                        average_life: detailItem.part.average_life,
+                        description: detailItem.part.description,
+                        part_image: detailItem.part.part_image,
+                        category: detailItem.part.category.name,
+                        manufacturer: detailItem.part.manufacturer.name,
+                        stocks: detailItem.part.stocks.map(stock => ({
+                            warehouse_name: stock.warehouse.name,
+                            quantity: stock.quantity
+                        }))
+                    }
+                }))
+            })),
+            total: orders.count,
+            page: parseInt(page),
+            limit: parseInt(limit),
+        })
+    } catch (error) {
+        return res.status(500).json({
             status: false,
-            message: 'Không có đơn hàng nào',
+            message: 'Đã có lỗi xảy ra',
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: 'Lấy thông tin đơn hàng thành công',
-        data: orders.rows.map((order) => ({
-            id: order.id,
-            order_code: order.order_code,
-            total_price: order.total_price,
-            total_quantity: order.total_quantity,
-            order_status: order.order_status,
-            payment_status: order.payment_status,
-            payment_method: order.payment_method,
-            delivery_method: order.delivery_method,
-            order_date: order.order_date,
-            user_id: order.user_id,
-            name: order.name,
-            email: order.email,
-            phone: order.phone,
-            notes: order.notes,
-            details: order.orderDetails.map((detailItem) => ({
-                id: detailItem.id,
-                quantity: detailItem.quantity,
-                price: detailItem.price,
-                total_price: detailItem.price * detailItem.quantity,
-                part_id: detailItem.part_id,
-                part: {
-                    part_name: detailItem.part.part_name,
-                    part_price: detailItem.part.part_price,
-                    sale: detailItem.part.sale,
-                    average_life: detailItem.part.average_life,
-                    description: detailItem.part.description,
-                    part_image: detailItem.part.part_image,
-                    category: detailItem.part.category.name,
-                    manufacturer: detailItem.part.manufacturer.name,
-                    stocks: detailItem.part.stocks.map(stock => ({
-                        warehouse_name: stock.warehouse.name,
-                        quantity: stock.quantity
-                    }))
-                }
-            }))
-        })),
-        total: orders.count,
-        page: parseInt(page),
-        limit: parseInt(limit),
-    })
 };
 
 // Lấy tất cả đơn hàng của hệ thống
@@ -663,63 +720,71 @@ const allOrdersHandler = async (req, res) => {
     const { page = 1, limit = 5 } = req.query;
     const offset = (page - 1) * parseInt(limit);
 
-    const orders = await orderService.findAllOrders({
-        offset,
-        limit: parseInt(limit)
-    });
+    try {
+        const orders = await orderService.findAllOrders({
+            offset,
+            limit: parseInt(limit)
+        });
 
-    if (!orders) {
-        return res.status(400).json({
+        if (!orders) {
+            return res.status(400).json({
+                status: false,
+                message: 'Không có đơn hàng nào',
+                data: {}
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: 'Lấy thông tin đơn hàng thành công',
+            data: orders.rows.map((order) => ({
+                id: order.id,
+                order_code: order.order_code,
+                total_price: order.total_price,
+                total_quantity: order.total_quantity,
+                order_status: order.order_status,
+                payment_status: order.payment_status,
+                payment_method: order.payment_method,
+                delivery_method: order.delivery_method,
+                order_date: order.order_date,
+                user_id: order.user_id,
+                name: order.name,
+                email: order.email,
+                phone: order.phone,
+                notes: order.notes,
+                details: order.orderDetails.map((detailItem) => ({
+                    id: detailItem.id,
+                    quantity: detailItem.quantity,
+                    price: detailItem.price,
+                    total_price: detailItem.price * detailItem.quantity,
+                    part_id: detailItem.part_id,
+                    part: {
+                        part_name: detailItem.part.part_name,
+                        part_price: detailItem.part.part_price,
+                        sale: detailItem.part.sale,
+                        average_life: detailItem.part.average_life,
+                        description: detailItem.part.description,
+                        part_image: detailItem.part.part_image,
+                        category: detailItem.part.category.name,
+                        manufacturer: detailItem.part.manufacturer.name,
+                        stocks: detailItem.part.stocks.map(stock => ({
+                            warehouse_name: stock.warehouse.name,
+                            quantity: stock.quantity
+                        }))
+                    }
+                }))
+            })),
+            total: orders.count,
+            page: parseInt(page),
+            limit: parseInt(limit),
+        })
+    } catch (error) {
+        return res.status(500).json({
             status: false,
-            message: 'Không có đơn hàng nào',
+            message: 'Đã có lỗi xảy ra',
             data: {}
         });
     }
-
-    return res.status(200).json({
-        status: true,
-        message: 'Lấy thông tin đơn hàng thành công',
-        data: orders.rows.map((order) => ({
-            id: order.id,
-            order_code: order.order_code,
-            total_price: order.total_price,
-            total_quantity: order.total_quantity,
-            order_status: order.order_status,
-            payment_status: order.payment_status,
-            payment_method: order.payment_method,
-            delivery_method: order.delivery_method,
-            order_date: order.order_date,
-            user_id: order.user_id,
-            name: order.name,
-            email: order.email,
-            phone: order.phone,
-            notes: order.notes,
-            details: order.orderDetails.map((detailItem) => ({
-                id: detailItem.id,
-                quantity: detailItem.quantity,
-                price: detailItem.price,
-                total_price: detailItem.price * detailItem.quantity,
-                part_id: detailItem.part_id,
-                part: {
-                    part_name: detailItem.part.part_name,
-                    part_price: detailItem.part.part_price,
-                    sale: detailItem.part.sale,
-                    average_life: detailItem.part.average_life,
-                    description: detailItem.part.description,
-                    part_image: detailItem.part.part_image,
-                    category: detailItem.part.category.name,
-                    manufacturer: detailItem.part.manufacturer.name,
-                    stocks: detailItem.part.stocks.map(stock => ({
-                        warehouse_name: stock.warehouse.name,
-                        quantity: stock.quantity
-                    }))
-                }
-            }))
-        })),
-        total: orders.count,
-        page: parseInt(page),
-        limit: parseInt(limit),
-    })
 };
 
 module.exports = {
@@ -727,6 +792,7 @@ module.exports = {
     paymentHandler,
     callbackOrderHandler,
     checkPaymentStatusHandler,
+    checkStatusPaymentHandler,
     deleteOrderHandler,
     trackingOrderHandler,
     changeOrderStatusHandler,

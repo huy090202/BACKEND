@@ -33,14 +33,34 @@ const deleteMotorcyclepartsById = async (id) => {
 
 // Tìm một phụ tùng theo id
 const findMotorcyclepartsById = async (id) => {
-    const motorcycleparts = await db.MotorcycleParts.findByPk(id)
+    const motorcycleparts = await db.MotorcycleParts.findByPk(id, {
+        include: [
+            {
+                model: db.Stock,
+                as: 'stocks',
+                include: [
+                    {
+                        model: db.Warehouse,
+                        as: 'warehouse',
+                        attributes: ['id', 'name', 'address']
+                    }
+                ],
+                attributes: ['quantity']
+            }
+        ]
+    })
     return motorcycleparts;
 };
 
 // Tìm tất cả phụ tùng
-const findMotorcycleparts = async ({ status, offset, limit }) => {
+const findMotorcycleparts = async ({ status, offset, limit }, categoryId) => {
+    const whereCondition = {
+        ...status,
+        ...(categoryId && { category_id: categoryId })
+    };
+
     const motorcycleparts = await db.MotorcycleParts.findAndCountAll({
-        where: status,
+        where: whereCondition,
         offset,
         limit,
         include: [
@@ -56,7 +76,11 @@ const findMotorcycleparts = async ({ status, offset, limit }) => {
                 ],
                 attributes: ['quantity']
             }
-        ]
+        ],
+        order: [
+            ['createdAt', 'DESC'],
+            ['updatedAt', 'DESC']
+        ],
     });
     return motorcycleparts;
 };

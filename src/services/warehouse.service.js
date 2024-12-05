@@ -48,7 +48,8 @@ const findWarehouses = async ({ status, offset, limit }) => {
     const warehouses = await db.Warehouse.findAndCountAll({
         where: status,
         offset,
-        limit
+        limit,
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']],
     });
     return warehouses;
 };

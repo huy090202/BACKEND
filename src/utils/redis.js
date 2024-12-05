@@ -4,7 +4,7 @@ const { config } = require('dotenv');
 config();
 
 const redisClient = createClient({
-    url: process.env.REDIS_URL,
+    url: process.env.REDIS_URL || 'redis://127.0.0.1:6379',
 });
 
 const redisConnection = async () => {
@@ -16,7 +16,12 @@ const redisConnection = async () => {
     }
 };
 
+redisClient.on('connect', () => console.log('🔗 Redis client đã kết nối!'));
+redisClient.on('ready', () => console.log('🎉 Redis client đã sẵn sàng!'));
+redisClient.on('end', () => console.log('🔌 Redis client đã ngắt kết nối!'));
+redisClient.on('reconnecting', () => console.log('🔄 Redis client đang thử kết nối lại...'));
+redisClient.on('error', (error) => console.error('⚠️ Lỗi Redis client:', error));
+
 redisConnection();
-redisClient.on('error', (error) => console.error('Lỗi Redis', error));
 
 module.exports = redisClient;

@@ -22,6 +22,11 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             defaultValue: DataTypes.UUIDV4,
         },
+        invoices_code: {
+            type: DataTypes.STRING(6),
+            allowNull: false,
+            unique: true
+        },
         total_amount: {
             type: DataTypes.DECIMAL(10, 2),
             allowNull: false,
@@ -35,8 +40,8 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: PAYMENT_METHOD_CODE['COD'],
         },
         create_at: {
-            type: DataTypes.DATE,
-            defaultValue: DataTypes.NOW,
+            type: DataTypes.STRING,
+            allowNull: true,
         },
         maintenance_id: {
             type: DataTypes.UUID,

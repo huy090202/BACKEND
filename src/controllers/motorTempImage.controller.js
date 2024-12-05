@@ -39,29 +39,37 @@ const createMotorTempImageHandler = async (req, res) => {
         }
     }
 
-    const motorTempImages = await Promise.all(
-        imageUrls.map(async (imageUrl) => {
-            return await motorTempImageService.createMotorTempImage({
-                image_url: imageUrl,
-                description,
-                motorTemp_id,
-            });
-        })
-    )
+    try {
+        const motorTempImages = await Promise.all(
+            imageUrls.map(async (imageUrl) => {
+                return await motorTempImageService.createMotorTempImage({
+                    image_url: imageUrl,
+                    description,
+                    motorTemp_id,
+                });
+            })
+        )
 
-    if (!motorTempImages || motorTempImages.length === 0) {
+        if (!motorTempImages || motorTempImages.length === 0) {
+            return res.status(500).json({
+                status: false,
+                message: "Lỗi khi tạo ảnh xe tạm",
+                data: {}
+            });
+        }
+
+        return res.status(201).json({
+            status: true,
+            message: "Ảnh xe tạm đã được tạo thành công",
+            data: motorTempImages
+        });
+    } catch (err) {
         return res.status(500).json({
             status: false,
             message: "Lỗi khi tạo ảnh xe tạm",
             data: {}
         });
     }
-
-    return res.status(201).json({
-        status: true,
-        message: "Ảnh xe tạm đã được tạo thành công",
-        data: motorTempImages
-    });
 };
 
 // Tìm tất cả ảnh xe tạm
@@ -75,14 +83,22 @@ const getAllMotorTempImagesHandler = async (req, res) => {
         })
     }
 
-    let motorTempImages = [];
-    motorTempImages = await motorTempImageService.findMotorTempImages(motorTemp_id);
-    return res.status(200).json({
-        status: true,
-        message: "Lấy tất cả ảnh xe tạm thành công",
-        data: motorTempImages.rows,
-        total: motorTempImages.count
-    });
+    try {
+        let motorTempImages = [];
+        motorTempImages = await motorTempImageService.findMotorTempImages(motorTemp_id);
+        return res.status(200).json({
+            status: true,
+            message: "Lấy tất cả ảnh xe tạm thành công",
+            data: motorTempImages.rows,
+            total: motorTempImages.count
+        });
+    } catch (err) {
+        return res.status(500).json({
+            status: false,
+            message: "Lỗi khi lấy tất cả ảnh xe tạm",
+            data: {}
+        });
+    }
 };
 
 module.exports = {
