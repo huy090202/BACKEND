@@ -87,8 +87,6 @@ const createInvoiceHandler = async (req, res) => {
         // Xử lý thanh toán qua cổng thanh toán
         const paymentResult = await paymentHandler(custom_invoice);
 
-        console.log(paymentResult);
-
         if (paymentResult && paymentResult.order_url) {
             return res.status(200).json({
                 status: true,
@@ -118,14 +116,14 @@ const paymentHandler = async (invoice) => {
         const items = [
             {
                 code: invoice.invoices_code,
-                itemprice: invoice.total_amount,
+                itemprice: Number(invoice.total_amount),
             }
         ];
 
         const embed_data = {
             redirecturl: `${process.env.URL_REACT}/` || 'http://localhost:3000/',
             invoices_code: invoice.invoices_code,
-            total_amount: invoice.total_amount,
+            total_amount: Number(invoice.total_amount),
             payment_method: invoice.payment_method,
             payment_status: invoice.payment_status,
             create_at: invoice.create_at,
@@ -162,6 +160,7 @@ const paymentHandler = async (invoice) => {
             params: paymentInvoice,
         })
 
+        console.log('Response from ZaloPay:', result.data);
         return result.data;
     } catch (error) {
         console.log('Đã có lỗi xảy ra', error.message);

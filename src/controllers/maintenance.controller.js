@@ -334,7 +334,8 @@ const getAllMaintenancesHandler = async (req, res) => {
                 appointment_id: item.appointment_id,
                 user: item.user,
                 motor: item.motor,
-                appointment: item.appointment
+                appointment: item.appointment,
+                maintenanceDetails: item.maintenanceDetails
             })),
             total: maintenances.count,
             page: parseInt(page),

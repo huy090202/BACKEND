@@ -347,7 +347,7 @@ const callbackOrderHandler = async (req, res) => {
                 payment_status: PAYMENT_STATUS_CODE['PAID'],
                 order_code: embedData.order_code,
                 user_id: embedData.user_id,
-                delivery_method: DELIVERY_METHOD_CODE[embedData.delivery_method],
+                delivery_method: DELIVERY_METHOD_CODE['DELIVERY'],
                 payment_method: PAYMENT_METHOD_CODE[embedData.payment_method],
                 order_date: '',
             }

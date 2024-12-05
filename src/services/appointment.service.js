@@ -75,7 +75,11 @@ const findAppointments = async ({ offset, limit }) => {
                 attributes: ['id', 'image_url']
             }
         ],
-        attributes: ['id', 'appointment_date', 'appointment_time', 'content', 'image_url', 'status', 'created_at', 'user_id', 'motor_id']
+        order: [
+            ['createdAt', 'DESC'],
+            ['updatedAt', 'DESC']
+        ],
+        // attributes: ['id', 'appointment_date', 'appointment_time', 'content', 'image_url', 'status', 'created_at', 'user_id', 'motor_id'],
     });
 
     const totalAppointments = await db.Appointment.count();
@@ -111,7 +115,8 @@ const findAppointmentsPublic = async ({ id, offset, limit }) => {
                 attributes: ['id', 'image_url']
             }
         ],
-        attributes: ['id', 'appointment_date', 'appointment_time', 'content', 'image_url', 'status', 'created_at', 'user_id', 'motor_id']
+        // attributes: ['id', 'appointment_date', 'appointment_time', 'content', 'image_url', 'status', 'created_at', 'user_id', 'motor_id'],
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']]
     });
     const totalAppointments = await db.Appointment.count();
     return {
@@ -167,6 +172,11 @@ const findMaintenancesByUserIdWithAppointment = async ({ id, offset, limit }) =>
                                 model: db.AppointmentImage,
                                 as: 'images',
                                 attributes: ['id', 'image_url']
+                            },
+                            {
+                                model: db.User,
+                                as: 'user',
+                                attributes: ['id', 'email', 'firstName', 'lastName', 'phoneNumber']
                             }
                         ],
                         attributes: ['id']
@@ -174,7 +184,8 @@ const findMaintenancesByUserIdWithAppointment = async ({ id, offset, limit }) =>
                 ]
             }
         ],
-        attributes: ['id', 'user_id', 'motor_id']
+        // attributes: ['id', 'user_id', 'motor_id'],
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']]
     });
     return maintenanes;
 };
@@ -237,7 +248,8 @@ const findMaintenanceHistoryByUserIdWithAppointment = async ({ id }) => {
                 ]
             }
         ],
-        attributes: ['id', 'user_id', 'motor_id']
+        // attributes: ['id', 'user_id', 'motor_id'],
+        order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']]
     });
     return maintenanes;
 };

@@ -47,6 +47,16 @@ const findAllInvoices = async ({ offset, limit }) => {
                                 as: 'part'
                             }
                         ]
+                    },
+                    {
+                        model: db.Appointment,
+                        as: 'appointment',
+                        include: [
+                            {
+                                model: db.User,
+                                as: 'user',
+                            },
+                        ]
                     }
                 ]
             }

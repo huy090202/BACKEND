@@ -20,8 +20,44 @@ const findMaintenanceById = async (id) => {
     const maintenance = await db.Maintenance.findByPk(id, {
         include: [
             {
+                model: db.User,
+                as: 'user'
+            },
+            {
+                model: db.Motor,
+                as: 'motor',
+                include: [
+                    {
+                        model: db.MotorImage,
+                        as: 'motorImages',
+                        attributes: ['id', 'image_url']
+                    }
+                ]
+            },
+            {
                 model: db.MaintenanceDetail,
-                as: 'maintenanceDetails'
+                as: 'maintenanceDetails',
+                include: [
+                    {
+                        model: db.MotorcycleParts,
+                        as: 'part'
+                    }
+                ]
+            },
+            {
+                model: db.Appointment,
+                as: 'appointment',
+                include: [
+                    {
+                        model: db.User,
+                        as: 'user',
+                        attributes: ['id', 'email', 'firstName', 'lastName', 'phoneNumber']
+                    }
+                ]
+            },
+            {
+                model: db.Invoice,
+                as: 'invoice'
             }
         ]
     });
@@ -80,6 +116,16 @@ const findAllMaintenances = async ({ offset, limit }) => {
                 ]
             },
             {
+                model: db.MaintenanceDetail,
+                as: 'maintenanceDetails',
+                include: [
+                    {
+                        model: db.MotorcycleParts,
+                        as: 'part'
+                    }
+                ]
+            },
+            {
                 model: db.Appointment,
                 as: 'appointment',
                 include: [
@@ -109,6 +155,16 @@ const findMaintenancesByTechId = async (id) => {
             {
                 model: db.Motor,
                 as: 'motor'
+            },
+            {
+                model: db.MaintenanceDetail,
+                as: 'maintenanceDetails',
+                include: [
+                    {
+                        model: db.MotorcycleParts,
+                        as: 'part'
+                    }
+                ]
             }
         ],
         order: [['createdAt', 'DESC'], ['updatedAt', 'DESC']],

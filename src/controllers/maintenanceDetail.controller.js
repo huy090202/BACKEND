@@ -7,7 +7,7 @@ const createMaintenanceDetailHandler = async (req, res) => {
     try {
         const { quantity, price, wear_percentage, maintenance_id, part_id } = req.body;
         console.log('req.body:', req.body);
-        if (!quantity || !price || !wear_percentage || !maintenance_id || !part_id) {
+        if (!quantity || !price || !wear_percentage < 0 || !maintenance_id || !part_id) {
             return res.status(400).json({
                 status: false,
                 message: 'Vui lòng nhập đầy đủ thông tin chi tiết bảo dưỡng',
@@ -94,7 +94,7 @@ const updateMaintenanceDetailByIdHandler = async (req, res) => {
     }
 
     const { quantity, price, wear_percentage, maintenance_id, part_id } = req.body;
-    if (!quantity || !price || !wear_percentage || !maintenance_id || !part_id) {
+    if (!quantity || !price || !wear_percentage < 0 || !maintenance_id || !part_id) {
         return res.status(400).json({
             status: false,
             message: 'Vui lòng nhập đầy đủ thông tin chi tiết bảo dưỡng',
