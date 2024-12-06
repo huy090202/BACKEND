@@ -1,33 +1,13 @@
-const Queue = require('bull');
-const userService = require('../../services/user.service');
-const motorService = require('../../services/motor.service');
-const motorTempService = require('../../services/motorTemp.service');
-const emailService = require('../../services/email.service');
-const appointmentService = require('../../services/appointment.service');
-const { config } = require('dotenv');
-
-config();
-
-const redisConfig = {
-    host: process.env.REDIS_HOST || '127.0.0.1',
-    port: process.env.REDIS_PORT || 6379,
-};
-
-const defaultJobOptions = {
-    attempts: 5, // Số lần thử lại khi job fail
-    backoff: 1000, // Thời gian delay trước khi retry
-    removeOnComplete: true, // Xoá job sau khi xử lý thành công
-    removeOnFail: false, // Giữ job nếu thất bại
-};
-
-// Tạo hàng đợi
-const orderQueue = new Queue('orderQueue', { redis: redisConfig, defaultJobOptions });
-const appointmentQueue = new Queue('appointmentQueue', { redis: redisConfig, defaultJobOptions });
+const { appointmentQueue } = require('../index');
+const userService = require('../../../services/user.service');
+const motorService = require('../../../services/motor.service');
+const motorTempService = require('../../../services/motorTemp.service');
+const emailService = require('../../../services/email.service');
 
 appointmentQueue.process(async (job) => {
     try {
         const { appointment_date, appointment_time, motor_id, content, user_id } = job.data;
-        console.log('Bắt đầu xử lý lịch hẹn bảo dưỡng');
+        console.log(`Processing appointment for user ${user_id}`);
 
         // Kiểm tra người dùng
         const existedUser = await userService.getUserProfile(user_id);
@@ -72,10 +52,9 @@ appointmentQueue.process(async (job) => {
         });
 
         // Gửi email thông báo
-        await emailService.sentEmailCreateAppointment(existedUser.email, appointment.appointment_date, appointment.appointment_time);
+        await emailService.sentEmailCreateAppointment(existedUser.email, appointment_date, appointment_time);
 
-        console.log(`Đã tạo thành công lịch hẹn cho: ${existedUser.email}`);
-        return appointment.id;
+        console.log(`Appointment created successfully for user ${user_id}`);
     } catch (err) {
         console.error(`Job appointmentQueue thất bại: ${job.id} - Error: ${err.message}`);
         throw err;
@@ -89,14 +68,3 @@ appointmentQueue.on('completed', (job) => {
 appointmentQueue.on('failed', (job, error) => {
     console.error(`Job appointmentQueue thất bại: ${job.id} - Error: ${error.message}`);
 });
-
-// Xử lý sự kiện hoàn thành và thất bại
-orderQueue.on('completed', (job) => {
-    console.log(`Job orderQueue đã hoàn thành: ${job.id}`);
-});
-
-orderQueue.on('failed', (job, error) => {
-    console.error(`Job orderQueue thất bại: ${job.id} - Error: ${error.message}`);
-});
-
-module.exports = { orderQueue, appointmentQueue };

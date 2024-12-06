@@ -4,6 +4,7 @@ const motorService = require('../services/motor.service');
 const motorTempService = require('../services/motorTemp.service');
 const emailService = require('../services/email.service');
 const { APPOINTMENT_STATUS_CODE } = require('../utils/appointment');
+const { appointmentQueue } = require('../utils/queues');
 
 // Tạo một lịch hẹn mới
 const createAppointmentHandler = async (req, res) => {
@@ -27,108 +28,116 @@ const createAppointmentHandler = async (req, res) => {
             });
         }
 
-        const existedUser = await userService.getUserProfile(user_id);
-        if (!existedUser) {
-            return res.status(400).json({
-                status: false,
-                message: "Người dùng không tồn tại",
-                data: {}
-            })
-        }
+        // const existedUser = await userService.getUserProfile(user_id);
+        // if (!existedUser) {
+        //     return res.status(400).json({
+        //         status: false,
+        //         message: "Người dùng không tồn tại",
+        //         data: {}
+        //     })
+        // }
 
-        // Nếu không có xe nào được chọn hoặc khách hàng chưa có xe nào
-        if (!motor_id) {
-            // Hiển thị ra tất cả xe tạm để kiểm tra xem có xe nào có email trùng với existedUser.email không?
-            const motorTemps = await motorTempService.findMotorTemps();
+        // // Nếu không có xe nào được chọn hoặc khách hàng chưa có xe nào
+        // if (!motor_id) {
+        //     // Hiển thị ra tất cả xe tạm để kiểm tra xem có xe nào có email trùng với existedUser.email không?
+        //     const motorTemps = await motorTempService.findMotorTemps();
 
-            // Tìm xe tạm nào có email trùng với email của existedUser
-            const matchedMotorTemp = motorTemps.rows.find(item => item.email === existedUser.email);
+        //     // Tìm xe tạm nào có email trùng với email của existedUser
+        //     const matchedMotorTemp = motorTemps.rows.find(item => item.email === existedUser.email);
 
-            if (matchedMotorTemp) {
-                const newMotor = await motorService.createMotor({
-                    motor_name: matchedMotorTemp.motor_name,
-                    motor_type: matchedMotorTemp.motor_type,
-                    motor_color: matchedMotorTemp.motor_color,
-                    license_plate: matchedMotorTemp.license_plate,
-                    engine_number: matchedMotorTemp.engine_number,
-                    chassis_number: matchedMotorTemp.chassis_number,
-                    motor_model: matchedMotorTemp.motor_model,
-                    created_at: matchedMotorTemp.created_at,
-                    user_id: user_id
-                });
+        //     if (matchedMotorTemp) {
+        //         const newMotor = await motorService.createMotor({
+        //             motor_name: matchedMotorTemp.motor_name,
+        //             motor_type: matchedMotorTemp.motor_type,
+        //             motor_color: matchedMotorTemp.motor_color,
+        //             license_plate: matchedMotorTemp.license_plate,
+        //             engine_number: matchedMotorTemp.engine_number,
+        //             chassis_number: matchedMotorTemp.chassis_number,
+        //             motor_model: matchedMotorTemp.motor_model,
+        //             created_at: matchedMotorTemp.created_at,
+        //             user_id: user_id
+        //         });
 
-                const existedMotor = await motorService.findMotorById(newMotor.id);
-                if (!existedMotor) {
-                    return res.status(400).json({
-                        status: false,
-                        message: "Xe không tồn tại",
-                        data: {}
-                    })
-                }
+        //         const existedMotor = await motorService.findMotorById(newMotor.id);
+        //         if (!existedMotor) {
+        //             return res.status(400).json({
+        //                 status: false,
+        //                 message: "Xe không tồn tại",
+        //                 data: {}
+        //             })
+        //         }
 
-                const appointment = await appointmentService.createAppointment({
-                    appointment_date, // YYYY-MM-DD
-                    appointment_time, // HH:MM:SS
-                    user_id,
-                    motor_id: existedMotor.id,
-                    content
-                });
+        //         const appointment = await appointmentService.createAppointment({
+        //             appointment_date, // YYYY-MM-DD
+        //             appointment_time, // HH:MM:SS
+        //             user_id,
+        //             motor_id: existedMotor.id,
+        //             content
+        //         });
 
-                await motorTempService.deleteMotorTempById(matchedMotorTemp.id);
+        //         await motorTempService.deleteMotorTempById(matchedMotorTemp.id);
 
-                // Gửi email thông báo tạo lịch hẹn thành công
-                await emailService.sentEmailCreateAppointment(existedUser.email, appointment.appointment_date, appointment.appointment_time);
+        //         // Gửi email thông báo tạo lịch hẹn thành công
+        //         await emailService.sentEmailCreateAppointment(existedUser.email, appointment.appointment_date, appointment.appointment_time);
 
-                if (!appointment) {
-                    return res.status(500).json({
-                        status: false,
-                        message: "Lỗi khi tạo lịch hẹn",
-                        data: {}
-                    });
-                }
+        //         if (!appointment) {
+        //             return res.status(500).json({
+        //                 status: false,
+        //                 message: "Lỗi khi tạo lịch hẹn",
+        //                 data: {}
+        //             });
+        //         }
 
-                return res.status(200).json({
-                    status: true,
-                    message: "Lịch hẹn đã được tạo thành công",
-                    data: appointment
-                });
-            }
-        }
+        //         return res.status(200).json({
+        //             status: true,
+        //             message: "Lịch hẹn đã được tạo thành công",
+        //             data: appointment
+        //         });
+        //     }
+        // }
 
-        const existedMotor = await motorService.findMotorById(motor_id);
-        if (!existedMotor) {
-            return res.status(400).json({
-                status: false,
-                message: "Xe không tồn tại",
-                data: {}
-            })
-        }
+        // const existedMotor = await motorService.findMotorById(motor_id);
+        // if (!existedMotor) {
+        //     return res.status(400).json({
+        //         status: false,
+        //         message: "Xe không tồn tại",
+        //         data: {}
+        //     })
+        // }
 
-        const appointment = await appointmentService.createAppointment({
-            appointment_date, // YYYY-MM-DD
-            appointment_time, // HH:MM:SS
-            user_id,
+        // const appointment = await appointmentService.createAppointment({
+        //     appointment_date, // YYYY-MM-DD
+        //     appointment_time, // HH:MM:SS
+        //     user_id,
+        //     motor_id,
+        //     content
+        // });
+
+        // // Gửi email thông báo tạo lịch hẹn thành công
+        // await emailService.sentEmailCreateAppointment(existedUser.email, appointment.appointment_date, appointment.appointment_time);
+
+        // if (!appointment) {
+        //     return res.status(500).json({
+        //         status: false,
+        //         message: "Lỗi khi tạo lịch hẹn",
+        //         data: {}
+        //     });
+        // }
+        const addJob = await appointmentQueue.add({
+            appointment_date,
+            appointment_time,
             motor_id,
-            content
+            content,
+            user_id,
         });
 
-        // Gửi email thông báo tạo lịch hẹn thành công
-        await emailService.sentEmailCreateAppointment(existedUser.email, appointment.appointment_date, appointment.appointment_time);
-
-        if (!appointment) {
-            return res.status(500).json({
-                status: false,
-                message: "Lỗi khi tạo lịch hẹn",
-                data: {}
-            });
-        }
-
-        return res.status(200).json({
+        return res.status(202).json({
             status: true,
-            message: "Lịch hẹn đã được tạo thành công",
-            data: appointment
+            message: "Yêu cầu tạo lịch hẹn đã được xử lý. Vui lòng đợi xác nhận!",
+            // data: appointment
         });
     } catch (err) {
+        console.error(err.message);
         return res.status(500).json({
             status: false,
             message: "Có lỗi xảy ra khi tạo lịch hẹn",
