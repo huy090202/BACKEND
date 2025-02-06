@@ -1,8 +1,8 @@
-# MAINTENANCE-BACKEND
+# BACKEND
 
 ```
 cd existing_repo
-git remote add origin https://github.com/huy090202/MAINTENANCE-BACKEND.git
+git remote add origin https://github.com/huy090202/BACKEND.git
 git branch -M main
 git push -uf origin main
 
