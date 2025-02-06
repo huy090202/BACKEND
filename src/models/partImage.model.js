@@ -5,7 +5,7 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class PartImage extends Model {
         static associate(models) {
-            // A part image belongs to a part
+            // 1 hình ảnh linh kiện xe máy thuộc về 1 linh kiện xe máy
             PartImage.belongsTo(models.MotorcycleParts, {
                 foreignKey: 'part_id',
                 as: 'part',
@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.UUID,
             primaryKey: true,
             allowNull: false,
+            defaultValue: DataTypes.UUIDV4,
         },
         image_url: {
             type: DataTypes.STRING,

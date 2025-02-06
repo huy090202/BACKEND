@@ -5,13 +5,13 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class Stock extends Model {
         static associate(models) {
-            // A stock belongs to a warehouse
+            // 1 số lượng linh kiện xe máy thuộc về 1 kho
             Stock.belongsTo(models.Warehouse, {
                 foreignKey: 'warehouse_id',
                 as: 'warehouse',
             });
 
-            // A stock belongs to a motorcycle part
+            // 1 số lượng linh kiện xe máy thuộc về 1 linh kiện xe máy
             Stock.belongsTo(models.MotorcycleParts, {
                 foreignKey: 'part_id',
                 as: 'part',
@@ -24,6 +24,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.UUID,
             primaryKey: true,
             allowNull: false,
+            defaultValue: DataTypes.UUIDV4,
         },
         quantity: {
             type: DataTypes.INTEGER,

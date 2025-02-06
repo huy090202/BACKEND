@@ -5,7 +5,7 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class Manufacturer extends Model {
         static associate(models) {
-            // A manufacturer has many motorcycle parts
+            // 1 nhà sản xuất có nhiều linh kiện xe máy
             Manufacturer.hasMany(models.MotorcycleParts, {
                 foreignKey: 'manufacturer_id',
                 as: 'motorcycleParts',
@@ -18,19 +18,13 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.UUID,
             primaryKey: true,
             allowNull: false,
+            defaultValue: DataTypes.UUIDV4,
         },
         name: {
             type: DataTypes.STRING,
-            allowNull: false,
-            set(value) {
-                this.setDataValue('name', value.trim());
-            },
-            get() {
-                const rawValue = this.getDataValue('name');
-                return rawValue ? rawValue.trim() : null;
-            }
+            allowNull: false
         },
-        contry: {
+        country: {
             type: DataTypes.STRING,
             allowNull: true,
         },

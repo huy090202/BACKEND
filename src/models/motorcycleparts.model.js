@@ -5,37 +5,31 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class MotorcycleParts extends Model {
         static associate(models) {
-            // A part belongs to a manufacturer
+            // 1 linh kiện xe máy thuộc về 1 nhà sản xuất
             MotorcycleParts.belongsTo(models.Manufacturer, {
                 foreignKey: 'manufacturer_id',
                 as: 'manufacturer',
             });
 
-            // A part belongs to a category
+            // 1 linh kiện xe máy thuộc về 1 danh mục
             MotorcycleParts.belongsTo(models.Category, {
                 foreignKey: 'category_id',
                 as: 'category',
             });
 
-            // A part can have many stocks
+            // 1 linh kiện xe máy có nhiều số lượng trong kho
             MotorcycleParts.hasMany(models.Stock, {
                 foreignKey: 'part_id',
                 as: 'stocks',
             });
 
-            // A part can have many images
+            // 1 linh kiện xe máy có nhiều hình ảnh
             MotorcycleParts.hasMany(models.PartImage, {
                 foreignKey: 'part_id',
                 as: 'images',
             });
 
-            // A part can have many order details
-            MotorcycleParts.hasMany(models.OrderDetail, {
-                foreignKey: 'part_id',
-                as: 'orderDetails',
-            });
-
-            // A part can have many maintenance details
+            // 1 linh kiện xe máy có nhiều chi tiết bảo dưỡng
             MotorcycleParts.hasMany(models.MaintenanceDetail, {
                 foreignKey: 'part_id',
                 as: 'maintenanceDetails',
@@ -48,20 +42,23 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.UUID,
             primaryKey: true,
             allowNull: false,
+            defaultValue: DataTypes.UUIDV4,
         },
         part_name: {
             type: DataTypes.STRING,
-            allowNull: false,
-            set(value) {
-                this.setDataValue('part_name', value.trim());
-            },
-            get() {
-                const rawValue = this.getDataValue('part_name');
-                return rawValue ? rawValue.trim() : null;
-            }
+            allowNull: false
         },
         part_price: {
-            type: DataTypes.STRING,
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
+        sale: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+        },
+        // Tuổi thọ trung bình của linh kiện
+        average_life: {
+            type: DataTypes.INTEGER,
             allowNull: false,
         },
         description: {
@@ -74,7 +71,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         part_image: {
             type: DataTypes.STRING,
-            allowNull: true,
+            allowNull: false,
         },
         manufacturer_id: {
             type: DataTypes.UUID,

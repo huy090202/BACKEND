@@ -2,25 +2,35 @@
 
 const { Model } = require('sequelize');
 
+const { GENDER_CODE } = require('../utils/gender');
+const { ROLE_CODE } = require('../utils/roles');
+const { WORK_CODE } = require('../utils/work');
+
 module.exports = (sequelize, DataTypes) => {
     class User extends Model {
         static associate(models) {
-            // A user can have many motors
+            // 1 người dùng có thể có nhiều xe máy
             User.hasMany(models.Motor, {
                 foreignKey: 'user_id',
                 as: 'motors',
             });
 
-            // A user can have many orders
-            User.hasMany(models.Order, {
-                foreignKey: 'user_id',
-                as: 'orders',
-            });
+            // 1 người dùng có thể có nhiều đơn hàng
+            // User.hasMany(models.Invoice, {
+            //     foreignKey: 'user_id',
+            //     as: 'invoices',
+            // });
 
-            // A user can have many maintenances
+            // 1 người dùng có thể có nhiều đơn bảo dưỡng
             User.hasMany(models.Maintenance, {
                 foreignKey: 'user_id',
                 as: 'maintenances',
+            });
+
+            // 1 người dùng có thể có nhiều lịch hẹn
+            User.hasMany(models.Appointment, {
+                foreignKey: 'user_id',
+                as: 'appointments',
             });
         }
     };
@@ -30,6 +40,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.UUID,
             primaryKey: true,
             allowNull: false,
+            defaultValue: DataTypes.UUIDV4,
         },
         avatar: {
             type: DataTypes.STRING,
@@ -38,70 +49,43 @@ module.exports = (sequelize, DataTypes) => {
         firstName: {
             type: DataTypes.STRING,
             allowNull: false,
-            // Delete space before and after string
-            set(value) {
-                this.setDataValue('firstname', value.trim());
-            },
-            // Get value without space before and after string
-            get() {
-                const rawValue = this.getDataValue('firstname');
-                return rawValue ? rawValue.trim() : null;
-            }
         },
         lastName: {
             type: DataTypes.STRING,
             allowNull: false,
-            set(value) {
-                this.setDataValue('lastname', value.trim());
-            },
-            get() {
-                const rawValue = this.getDataValue('lastname');
-                return rawValue ? rawValue.trim() : null;
-            }
         },
         email: {
             type: DataTypes.STRING,
             allowNull: false,
             unique: true,
-            validate: {
-                isEmail: true
-            },
-            set(value) {
-                this.setDataValue('email', value.trim());
-            },
-            get() {
-                const rawValue = this.getDataValue('email');
-                return rawValue ? rawValue.trim() : null;
-            }
         },
         phoneNumber: {
             type: DataTypes.STRING,
             allowNull: false,
             unique: true,
-            validate: {
-                isNumeric: true
-            },
         },
         password: {
             type: DataTypes.STRING,
             allowNull: false,
         },
         gender: {
-            type: DataTypes.ENUM,
-            values: ['MALE', "FEMALE", 'OTHER'],
-            defaultValue: 'OTHER'
+            type: DataTypes.ENUM(...Object.values(GENDER_CODE)),
+            defaultValue: GENDER_CODE['OTHER']
         },
         address: {
             type: DataTypes.STRING,
         },
-        avtive: {
+        active: {
             type: DataTypes.BOOLEAN,
             defaultValue: true,
         },
+        work_status: {
+            type: DataTypes.ENUM(...Object.values(WORK_CODE)),
+            defaultValue: WORK_CODE['NOT_WORKING'],
+        },
         role: {
-            type: DataTypes.ENUM,
-            values: ['USER', 'STAFF', 'ADMIN'],
-            defaultValue: 'USER',
+            type: DataTypes.ENUM(...Object.values(ROLE_CODE)),
+            defaultValue: ROLE_CODE['USER']
         }
     }, {
         sequelize,

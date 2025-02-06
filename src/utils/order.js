@@ -1,24 +1,20 @@
 const ORDER_STATUS_CODE = {
-    PENDING: "PENDING", // Chờ xác nhận
-    CONFIRMED: "CONFIRMED", // Đã xác nhận
-    PREPARING: "PREPARING", // Đang chuẩn bị
-    SHIPPING: "SHIPPING", // Đang giao hàng
-    DELIVERED: "DELIVERED", // Đã giao hàng
-    CANCELED: "CANCELED", // Đã hủy
-    INVALID: "INVALID", // Đơn hàng không hợp lệ
-    FAILED: "FAILED" // Đơn hàng thất bại
-}
-
-const ORDER_STATUS_KEYS = Object.keys(ORDER_STATUS_CODE);
+    PENDING: "Chờ xác nhận",
+    CONFIRMED: "Đã xác nhận",
+    PREPARING: "Đang chuẩn bị",
+    SHIPPING: "Đang giao hàng",
+    DELIVERED: "Đã giao hàng",
+    CANCELED: "Đã hủy",
+    INVALID: "Đơn hàng không hợp lệ",
+    FAILED: "Đơn hàng thất bại",
+};
 
 const DELIVERY_METHOD_CODE = {
-    DELIVERY: "DELIVERY", // Giao hàng
-    CARRYOUT: "CARRYOUT" // Mang về
-}
+    DELIVERY: "Giao hàng",
+    CARRYOUT: "Nhận tại cửa hàng",
+};
 
-export default {
+module.exports = {
     ORDER_STATUS_CODE,
     DELIVERY_METHOD_CODE,
-
-    ORDER_STATUS_KEYS
-}
+};
