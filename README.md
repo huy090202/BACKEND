@@ -1,4 +1,4 @@
-# MAINTENANCE-BACKEND (Hệ thống bảo dưỡng xe máy - back end)
+# BACKEND
 
 # Công nghệ chính đã được sử dụng
 
@@ -20,7 +20,7 @@ Cần phải cài đặt ngrok (phục vụ cho các chức năng thanh toán on
 
 ```
 cd existing_repo
-git remote add origin https://github.com/huy090202/MAINTENANCE-BACKEND.git
+git remote add origin https://github.com/huy090202/BACKEND.git
 git branch -M main
 git push -uf origin main
 
